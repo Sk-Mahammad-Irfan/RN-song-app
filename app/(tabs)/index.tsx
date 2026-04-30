@@ -1,98 +1,173 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import {
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import MiniPlayer from '../../components/MiniPlayer';
+import MoodPill from '../../components/MoodPill';
+import WaveformBars from '../../components/WaveformBars';
+import { SONGS } from '../../constants/mockData';
+import { C } from '../../constants/theme';
+import { usePlayer } from '../../store/playerStore';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+const MOODS = ['Focus', 'Chill', 'Hype', 'Sleep'];
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const [activeMood, setActiveMood] = useState('Focus');
+  const { song: currentSong, isPlaying, setSong } = usePlayer();
+  const router = useRouter();
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  const hour = new Date().getHours();
+  const greeting =
+    hour < 12 ? 'good morning' : hour < 17 ? 'good afternoon' : 'good evening';
+
+  const filteredSongs = SONGS.filter((_, i) => {
+    if (activeMood === 'Focus') return i % 2 === 0 || i === 0;
+    if (activeMood === 'Chill') return [1, 2, 4].includes(i);
+    if (activeMood === 'Hype') return [0, 2, 3].includes(i);
+    return true;
+  });
+
+  return (
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <SafeAreaView style={{ backgroundColor: C.bg }} />
+
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 16 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Greeting */}
+        <Text style={{ color: '#7a7a8c', fontSize: 14, marginBottom: 6, marginTop: 4 }}>
+          {greeting}
+        </Text>
+
+        <Text
+          style={{
+            color: '#f0f0f5',
+            fontSize: 30,
+            fontWeight: '600',
+            lineHeight: 36,
+            marginBottom: 20,
+          }}
+        >
+          What's the{'\n'}mood tonight?
+        </Text>
+
+        {/* Mood Pills */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ marginBottom: 28, marginHorizontal: -20 }}
+          contentContainerStyle={{ paddingHorizontal: 20, gap: 10 }}
+        >
+          {MOODS.map((mood) => (
+            <MoodPill
+              key={mood}
+              label={mood}
+              active={activeMood === mood}
+              onPress={() => setActiveMood(mood)}
+            />
+          ))}
+        </ScrollView>
+
+        {/* Recently Played label */}
+        <Text
+          style={{
+            color: C.textMuted,
+            fontSize: 10,
+            letterSpacing: 1.5,
+            marginBottom: 14,
+          }}
+        >
+          RECENTLY PLAYED
+        </Text>
+
+        {/* Song list */}
+        {filteredSongs.map((song, index) => {
+          const isActive = currentSong.id === song.id;
+          return (
+            <TouchableOpacity
+              key={song.id}
+              activeOpacity={0.75}
+              onPress={() => {
+                setSong(song);
+                router.push('/player');
+              }}
+              style={{
+                backgroundColor: C.card,
+                borderRadius: 16,
+                borderWidth: 0.5,
+                borderColor: C.border,
+                padding: 12,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 14,
+                marginBottom: 10,
+              }}
+            >
+              <WaveformBars
+                color={song.color}
+                bg={song.bg}
+                count={5}
+                isPlaying={isActive && isPlaying}
+                size="md"
+              />
+              <View style={{ flex: 1 }}>
+                <Text
+                  numberOfLines={1}
+                  style={{
+                    color: '#e8e8f2',
+                    fontSize: 14,
+                    fontWeight: '500',
+                    marginBottom: 4,
+                  }}
+                >
+                  {song.title}
+                </Text>
+                <Text style={{ color: C.textMuted, fontSize: 12 }}>
+                  {song.artist} · {song.duration}
+                </Text>
+                {index === 0 && (
+                  <View
+                    style={{
+                      height: 2,
+                      backgroundColor: '#2a2a38',
+                      borderRadius: 1,
+                      marginTop: 7,
+                    }}
+                  >
+                    <View
+                      style={{
+                        width: '40%',
+                        height: 2,
+                        backgroundColor: C.purple,
+                        borderRadius: 1,
+                      }}
+                    />
+                  </View>
+                )}
+              </View>
+              <TouchableOpacity style={{ padding: 4 }}>
+                <Text
+                  style={{
+                    fontSize: 17,
+                    color: index === 0 ? C.purple : '#3e3e50',
+                  }}
+                >
+                  {index === 0 ? '♥' : '♡'}
+                </Text>
+              </TouchableOpacity>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+
+      <MiniPlayer />
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
