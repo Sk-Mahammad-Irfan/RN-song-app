@@ -4,8 +4,8 @@ import TabBar from '../../components/TabBar';
 export default function TabsLayout() {
   return (
     <Tabs
-      screenOptions={{ headerShown: false }}
-      tabBar={() => <TabBar />}
+      screenOptions={ { headerShown: false } }
+      tabBar={ () => <TabBar /> }
     >
       <Tabs.Screen name="index" />
       <Tabs.Screen name="find" />

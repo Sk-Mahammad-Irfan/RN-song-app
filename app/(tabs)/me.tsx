@@ -2,7 +2,6 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import {
     ScrollView,
-    StyleSheet,
     Switch,
     Text,
     TouchableOpacity,
@@ -19,278 +18,244 @@ export default function MeScreen() {
   const router = useRouter();
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
 
+  const settingRow = {
+    backgroundColor: C.card,
+    borderWidth: 0.5,
+    borderColor: C.border,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 8,
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
+  };
+
   return (
-    <View style={[styles.container, { backgroundColor: C.bg }]}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={{ paddingTop: insets.top + 16 }}>
-          <View style={styles.avatarContainer}>
-            <View
-              style={[
-                styles.avatar,
-                {
-                  backgroundColor: C.purple,
-                },
-              ]}
-            >
-              <Text style={styles.avatarText}>AH</Text>
-            </View>
-          </View>
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: insets.top + 16,
+          paddingBottom: 120,
+        }}
+      >
 
-          <Text style={[styles.username, { color: C.text }]}>Arjun H</Text>
-          <Text style={[styles.memberSince, { color: C.textMuted }]}>
-            Member since 2024
-          </Text>
-
-          <View style={styles.statsContainer}>
-            <View style={styles.statCard}>
-              <Text style={[styles.statValue, { color: C.text }]}>214</Text>
-              <Text style={[styles.statLabel, { color: C.textMuted }]}>
-                Songs liked
-              </Text>
-            </View>
-            <View style={styles.statCard}>
-              <Text style={[styles.statValue, { color: C.text }]}>3</Text>
-              <Text style={[styles.statLabel, { color: C.textMuted }]}>
-                Playlists
-              </Text>
-            </View>
-            <View style={styles.statCard}>
-              <Text style={[styles.statValue, { color: C.text }]}>6</Text>
-              <Text style={[styles.statLabel, { color: C.textMuted }]}>
-                Requested
-              </Text>
-            </View>
-          </View>
-
-          <Text style={[styles.sectionLabel, { color: C.textMuted }]}>
-            MY ACTIVITY
-          </Text>
-          {SONGS.slice(0, 3).map((song) => (
-            <TouchableOpacity
-              key={song.id}
-              style={[
-                styles.activityRow,
-                {
-                  backgroundColor: C.card,
-                  borderColor: C.border,
-                },
-              ]}
-              activeOpacity={0.8}
-            >
-              <WaveformBars color={song.color} bg={song.bg} size="sm" />
-              <View style={styles.activityInfo}>
-                <Text style={[styles.activityTitle, { color: C.text }]}>
-                  {song.title}
-                </Text>
-                <Text style={[styles.activityArtist, { color: C.textMuted }]}>
-                  {song.artist}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-
-          <TouchableOpacity
-            onPress={() => router.push('/requests')}
-            style={[
-              styles.shortcutCard,
-              {
-                backgroundColor: C.purple,
-              },
-            ]}
-            activeOpacity={0.8}
-          >
-            <View>
-              <Text style={[styles.shortcutTitle, { color: C.text }]}>
-                Song Requests
-              </Text>
-              <Text style={[styles.shortcutSub, { color: C.textSub }]}>
-                Track your requests
-              </Text>
-            </View>
-            <Text style={{ fontSize: 16, color: C.text }}>›</Text>
-          </TouchableOpacity>
-
-          <Text style={[styles.sectionLabel, { color: C.textMuted, marginTop: 24 }]}>
-            SETTINGS
-          </Text>
-
+        {/* ── Avatar ── */}
+        <View style={{ alignItems: 'center', marginBottom: 12 }}>
           <View
-            style={[
-              styles.settingRow,
-              {
-                backgroundColor: C.card,
-                borderColor: C.border,
-              },
-            ]}
+            style={{
+              width: 68,
+              height: 68,
+              borderRadius: 34,
+              backgroundColor: C.purple,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
-            <Text style={[styles.settingLabel, { color: C.text }]}>
-              Notifications
+            <Text style={{ color: C.text, fontSize: 22, fontWeight: '600' }}>
+              AH
             </Text>
-            <Switch
-              value={notificationsEnabled}
-              onValueChange={setNotificationsEnabled}
-              trackColor={{ false: C.border, true: C.purple }}
-              thumbColor={notificationsEnabled ? C.purpleLight : C.textMuted}
-            />
           </View>
-
-          <TouchableOpacity
-            style={[
-              styles.settingRow,
-              {
-                backgroundColor: C.card,
-                borderColor: C.border,
-              },
-            ]}
-            activeOpacity={0.8}
-          >
-            <Text style={[styles.settingLabel, { color: C.text }]}>
-              Audio quality
-            </Text>
-            <Text style={[styles.settingValue, { color: C.textMuted }]}>
-              High ›
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.settingRow,
-              {
-                backgroundColor: C.card,
-                borderColor: C.border,
-              },
-            ]}
-            activeOpacity={0.8}
-          >
-            <Text style={[styles.settingLabel, { color: C.text }]}>About</Text>
-            <Text style={[styles.settingValue, { color: C.textMuted }]}>
-              v1.0.0 ›
-            </Text>
-          </TouchableOpacity>
         </View>
 
-        <View style={{ height: 100 }} />
+        {/* ── Name & since ── */}
+        <Text
+          style={{
+            fontSize: 18,
+            fontWeight: '600',
+            color: C.text,
+            textAlign: 'center',
+            marginBottom: 4,
+          }}
+        >
+          Arjun H
+        </Text>
+        <Text
+          style={{
+            fontSize: 11,
+            color: C.textMuted,
+            textAlign: 'center',
+            marginBottom: 24,
+          }}
+        >
+          Member since 2024
+        </Text>
+
+        {/* ── Stats row ── */}
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-around',
+            marginBottom: 28,
+          }}
+        >
+          {[
+            { value: '214', label: 'Songs liked' },
+            { value: '3', label: 'Playlists' },
+            { value: '6', label: 'Requested' },
+          ].map((stat) => (
+            <View
+              key={stat.label}
+              style={{
+                alignItems: 'center',
+                backgroundColor: C.card,
+                borderWidth: 0.5,
+                borderColor: C.border,
+                borderRadius: 14,
+                paddingVertical: 14,
+                paddingHorizontal: 20,
+                flex: 1,
+                marginHorizontal: 4,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 20,
+                  fontWeight: '700',
+                  color: C.text,
+                  marginBottom: 4,
+                }}
+              >
+                {stat.value}
+              </Text>
+              <Text style={{ fontSize: 10, color: C.textMuted, textAlign: 'center' }}>
+                {stat.label}
+              </Text>
+            </View>
+          ))}
+        </View>
+
+        {/* ── My Activity ── */}
+        <Text
+          style={{
+            fontSize: 9,
+            letterSpacing: 1.2,
+            fontWeight: '600',
+            color: C.textMuted,
+            marginBottom: 12,
+          }}
+        >
+          MY ACTIVITY
+        </Text>
+
+        {SONGS.slice(0, 3).map((song) => (
+          <TouchableOpacity
+            key={song.id}
+            activeOpacity={0.8}
+            style={{
+              backgroundColor: C.card,
+              borderWidth: 0.5,
+              borderColor: C.border,
+              borderRadius: 12,
+              padding: 10,
+              marginBottom: 8,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 12,
+            }}
+          >
+            <WaveformBars color={song.color} bg={song.bg} size="sm" />
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: '500',
+                  color: C.text,
+                  marginBottom: 3,
+                }}
+              >
+                {song.title}
+              </Text>
+              <Text style={{ fontSize: 11, color: C.textMuted }}>
+                {song.artist}
+              </Text>
+            </View>
+            <Text style={{ fontSize: 11, color: C.textDim }}>{song.duration}</Text>
+          </TouchableOpacity>
+        ))}
+
+        {/* ── Song Requests shortcut ── */}
+        <TouchableOpacity
+          onPress={() => router.push('/requests')}
+          activeOpacity={0.85}
+          style={{
+            backgroundColor: C.purple,
+            borderRadius: 14,
+            padding: 16,
+            marginTop: 8,
+            marginBottom: 24,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <View>
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: '600',
+                color: C.text,
+                marginBottom: 3,
+              }}
+            >
+              Song Requests
+            </Text>
+            <Text style={{ fontSize: 11, color: C.textSub }}>
+              Track your requests
+            </Text>
+          </View>
+          <Text style={{ fontSize: 20, color: C.text }}>›</Text>
+        </TouchableOpacity>
+
+        {/* ── Settings ── */}
+        <Text
+          style={{
+            fontSize: 9,
+            letterSpacing: 1.2,
+            fontWeight: '600',
+            color: C.textMuted,
+            marginBottom: 12,
+          }}
+        >
+          SETTINGS
+        </Text>
+
+        {/* Notifications toggle */}
+        <View style={settingRow}>
+          <Text style={{ fontSize: 13, fontWeight: '500', color: C.text }}>
+            Notifications
+          </Text>
+          <Switch
+            value={notificationsEnabled}
+            onValueChange={setNotificationsEnabled}
+            trackColor={{ false: C.border, true: C.purple }}
+            thumbColor={notificationsEnabled ? C.purpleLight : C.textMuted}
+          />
+        </View>
+
+        {/* Audio quality */}
+        <TouchableOpacity activeOpacity={0.8} style={settingRow}>
+          <Text style={{ fontSize: 13, fontWeight: '500', color: C.text }}>
+            Audio quality
+          </Text>
+          <Text style={{ fontSize: 12, color: C.textMuted }}>High ›</Text>
+        </TouchableOpacity>
+
+        {/* About */}
+        <TouchableOpacity activeOpacity={0.8} style={settingRow}>
+          <Text style={{ fontSize: 13, fontWeight: '500', color: C.text }}>
+            About
+          </Text>
+          <Text style={{ fontSize: 12, color: C.textMuted }}>v1.0.0 ›</Text>
+        </TouchableOpacity>
+
       </ScrollView>
 
-      <View style={styles.miniPlayerWrapper}>
+      {/* ── Mini Player ── */}
+      <View style={{ position: 'static', bottom: 50, left: 0, right: 0 }}>
         <MiniPlayer />
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  content: {
-    paddingHorizontal: 16,
-  },
-  avatarContainer: {
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarText: {
-    color: 'white',
-    fontSize: 22,
-    fontWeight: '600',
-  },
-  username: {
-    fontSize: 18,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 2,
-  },
-  memberSince: {
-    fontSize: 11,
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 24,
-  },
-  statCard: {
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 10,
-  },
-  sectionLabel: {
-    fontSize: 9,
-    letterSpacing: 1,
-    marginBottom: 12,
-    fontWeight: '600',
-  },
-  activityRow: {
-    borderWidth: 0.5,
-    borderRadius: 12,
-    padding: 10,
-    marginBottom: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  activityInfo: {
-    flex: 1,
-  },
-  activityTitle: {
-    fontSize: 12,
-    fontWeight: '500',
-    marginBottom: 2,
-  },
-  activityArtist: {
-    fontSize: 10,
-  },
-  shortcutCard: {
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  shortcutTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  shortcutSub: {
-    fontSize: 11,
-  },
-  settingRow: {
-    borderWidth: 0.5,
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  settingLabel: {
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  settingValue: {
-    fontSize: 12,
-  },
-  miniPlayerWrapper: {
-    position: 'absolute',
-    bottom: 50,
-    left: 0,
-    right: 0,
-  },
-});

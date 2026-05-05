@@ -1,311 +1,252 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
-import {
-    FlatList,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-} from 'react-native';
+import { FlatList, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MiniPlayer from '../../components/MiniPlayer';
 import WaveformBars from '../../components/WaveformBars';
 import { PLAYLISTS, SONGS } from '../../constants/mockData';
 import { C } from '../../constants/theme';
+import { usePlayer } from '../../store/playerStore';
 
 export default function PlaylistDetailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { id } = useLocalSearchParams();
+  const { song: currentSong, isPlaying, setSong } = usePlayer();
 
   const playlist = PLAYLISTS.find((p) => p.id === id);
+
   if (!playlist) {
     return (
-      <View style={[styles.container, { backgroundColor: C.bg }]}>
-        <Text style={{ color: C.text }}>Playlist not found</Text>
+      <View style={{ flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ color: C.textMuted, fontSize: 14 }}>Playlist not found</Text>
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: C.bg }]}>
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
       <FlatList
         data={SONGS}
         keyExtractor={(item) => item.id}
-        scrollEnabled
+        showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           <View style={{ paddingTop: insets.top }}>
-            <View style={styles.header}>
+
+            {/* ── Back row ── */}
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+                gap: 10,
+              }}
+            >
               <TouchableOpacity onPress={() => router.back()}>
-                <Text style={[styles.backArrow, { color: C.text }]}>‹</Text>
+                <Text style={{ fontSize: 28, color: C.text, lineHeight: 32 }}>‹</Text>
               </TouchableOpacity>
-              <Text style={[styles.breadcrumb, { color: C.textMuted }]}>
+              <Text style={{ fontSize: 12, color: C.textMuted, flex: 1 }}>
                 your waves › {playlist.name}
               </Text>
             </View>
 
-            <View style={styles.headerContent}>
+            {/* ── Playlist hero ── */}
+            <View style={{ alignItems: 'center', paddingHorizontal: 16, paddingVertical: 16, gap: 12 }}>
               <WaveformBars
                 color={playlist.color}
                 bg={playlist.bg}
                 size="lg"
                 count={6}
               />
-              <Text style={[styles.playlistName, { color: C.text }]}>
+
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontWeight: '600',
+                  color: C.text,
+                  textAlign: 'center',
+                  marginTop: 4,
+                }}
+              >
                 {playlist.name}
               </Text>
-              <View style={styles.playlistStats}>
-                <Text style={[styles.stat, { color: C.textMuted }]}>
-                  {playlist.count} songs
-                </Text>
-                <Text style={[styles.stat, { color: C.textMuted }]}>
-                  {playlist.duration}
-                </Text>
+
+              {/* count + duration */}
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                <Text style={{ fontSize: 11, color: C.textMuted }}>{playlist.count} songs</Text>
+                <Text style={{ fontSize: 11, color: C.textMuted }}>{playlist.duration}</Text>
               </View>
 
-              <View style={styles.tagContainer}>
+              {/* Tags */}
+              <View style={{ flexDirection: 'row', gap: 6, justifyContent: 'center', flexWrap: 'wrap' }}>
                 {playlist.tags.map((tag) => (
                   <Text
                     key={tag}
-                    style={[
-                      styles.tag,
-                      {
-                        backgroundColor: C.border,
-                        color: C.textMuted,
-                      },
-                    ]}
+                    style={{
+                      fontSize: 10,
+                      color: C.textMuted,
+                      backgroundColor: C.border,
+                      paddingHorizontal: 10,
+                      paddingVertical: 4,
+                      borderRadius: 10,
+                    }}
                   >
                     {tag}
                   </Text>
                 ))}
               </View>
 
-              <View style={styles.buttonsContainer}>
+              {/* Action buttons */}
+              <View style={{ flexDirection: 'row', gap: 8, width: '100%', marginTop: 4 }}>
                 <TouchableOpacity
-                  style={[
-                    styles.playButton,
-                    {
-                      backgroundColor: C.purple,
-                    },
-                  ]}
-                  activeOpacity={0.8}
+                  activeOpacity={0.85}
+                  onPress={() => { setSong(SONGS[0]); router.push('/player'); }}
+                  style={{
+                    flex: 1,
+                    backgroundColor: C.purple,
+                    borderRadius: 10,
+                    paddingVertical: 12,
+                    alignItems: 'center',
+                  }}
                 >
-                  <Text style={[styles.playButtonText, { color: C.text }]}>
-                    ▶ Play all
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: C.text }}>
+                    ▶  Play all
                   </Text>
                 </TouchableOpacity>
+
                 <TouchableOpacity
-                  style={[
-                    styles.iconButton,
-                    {
-                      backgroundColor: C.card,
-                      borderColor: C.border,
-                    },
-                  ]}
                   activeOpacity={0.8}
+                  style={{
+                    width: 42,
+                    height: 42,
+                    borderRadius: 10,
+                    backgroundColor: C.card,
+                    borderWidth: 0.5,
+                    borderColor: C.border,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                 >
-                  <Text style={styles.iconButtonText}>🔀</Text>
+                  <Text style={{ fontSize: 15 }}>🔀</Text>
                 </TouchableOpacity>
+
                 <TouchableOpacity
-                  style={[
-                    styles.iconButton,
-                    {
-                      backgroundColor: C.card,
-                      borderColor: C.border,
-                    },
-                  ]}
                   activeOpacity={0.8}
+                  style={{
+                    width: 42,
+                    height: 42,
+                    borderRadius: 10,
+                    backgroundColor: C.card,
+                    borderWidth: 0.5,
+                    borderColor: C.border,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                 >
-                  <Text style={styles.iconButtonText}>+</Text>
+                  <Text style={{ fontSize: 20, color: C.textMuted, lineHeight: 26 }}>+</Text>
                 </TouchableOpacity>
               </View>
             </View>
 
+            {/* ── Songs count strip ── */}
             <View
-              style={[
-                styles.songsHeader,
-                {
-                  backgroundColor: C.card,
-                  borderColor: C.border,
-                },
-              ]}
+              style={{
+                backgroundColor: C.card,
+                borderWidth: 0.5,
+                borderColor: C.border,
+                borderRadius: 10,
+                paddingVertical: 8,
+                paddingHorizontal: 14,
+                marginHorizontal: 16,
+                marginBottom: 10,
+              }}
             >
-              <Text style={[styles.songsHeaderText, { color: C.textMuted }]}>
+              <Text style={{ fontSize: 11, color: C.textMuted }}>
                 {SONGS.length} songs
               </Text>
             </View>
           </View>
         }
-        renderItem={({ item, index }) => (
-          <TouchableOpacity
-            style={[
-              styles.songRow,
-              {
-                backgroundColor: C.card,
-                borderColor: C.border,
-              },
-            ]}
-            activeOpacity={0.8}
-          >
-            <Text style={[styles.songNumber, { color: C.textMuted }]}>
-              {index + 1}
-            </Text>
-            <View style={styles.songInfo}>
-              <Text style={[styles.songTitle, { color: C.text }]} numberOfLines={1}>
-                {item.title}
-              </Text>
-              <Text style={[styles.songArtist, { color: C.textMuted }]} numberOfLines={1}>
-                {item.artist}
-              </Text>
-            </View>
-            <Text style={[styles.duration, { color: C.textMuted }]}>
-              {item.duration}
-            </Text>
-            <View
+
+        renderItem={({ item, index }) => {
+          const isActive = currentSong.id === item.id;
+          return (
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => { setSong(item); router.push('/player'); }}
               style={{
-                opacity: index === 0 ? 1 : 0.4,
+                backgroundColor: C.card,
+                borderWidth: 0.5,
+                borderColor: isActive ? C.purple : C.border,
+                borderRadius: 12,
+                padding: 10,
+                marginHorizontal: 16,
+                marginVertical: 4,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 10,
               }}
             >
-              <WaveformBars
-                color={item.color}
-                bg={item.bg}
-                size="sm"
-                count={3}
-              />
-            </View>
-          </TouchableOpacity>
-        )}
-        ListFooterComponent={<View style={{ height: 100 }} />}
+              {/* Number */}
+              <Text
+                style={{
+                  fontSize: 11,
+                  color: isActive ? C.purpleLight : C.textMuted,
+                  width: 22,
+                  textAlign: 'center',
+                }}
+              >
+                {index + 1}
+              </Text>
+
+              {/* Song info */}
+              <View style={{ flex: 1 }}>
+                <Text
+                  numberOfLines={1}
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '500',
+                    color: isActive ? C.purpleLight : C.text,
+                    marginBottom: 3,
+                  }}
+                >
+                  {item.title}
+                </Text>
+                <Text
+                  numberOfLines={1}
+                  style={{ fontSize: 10, color: C.textMuted }}
+                >
+                  {item.artist}
+                </Text>
+              </View>
+
+              {/* Duration */}
+              <Text style={{ fontSize: 10, color: C.textDim, width: 32, textAlign: 'right' }}>
+                {item.duration}
+              </Text>
+
+              {/* Waveform bars */}
+              <View style={{ opacity: isActive ? 1 : 0.35 }}>
+                <WaveformBars
+                  color={item.color}
+                  bg={item.bg}
+                  size="sm"
+                  count={3}
+                  isPlaying={isActive && isPlaying}
+                />
+              </View>
+            </TouchableOpacity>
+          );
+        }}
+
+        ListFooterComponent={<View style={{ height: 120 }} />}
       />
-      <View style={styles.miniPlayerWrapper}>
+
+      {/* ── Mini Player ── */}
+      <View style={{ position: 'absolute', bottom: 50, left: 0, right: 0 }}>
         <MiniPlayer />
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 12,
-  },
-  backArrow: {
-    fontSize: 28,
-  },
-  breadcrumb: {
-    fontSize: 12,
-    flex: 1,
-  },
-  headerContent: {
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-  },
-  playlistName: {
-    fontSize: 15,
-    fontWeight: '600',
-    marginTop: 16,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  playlistStats: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 12,
-  },
-  stat: {
-    fontSize: 11,
-  },
-  tagContainer: {
-    flexDirection: 'row',
-    gap: 6,
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  tag: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    fontSize: 10,
-  },
-  buttonsContainer: {
-    flexDirection: 'row',
-    gap: 8,
-    width: '100%',
-  },
-  playButton: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  playButtonText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    borderWidth: 0.5,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  iconButtonText: {
-    fontSize: 16,
-  },
-  songsHeader: {
-    borderWidth: 0.5,
-    borderRadius: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    marginHorizontal: 16,
-    marginBottom: 12,
-  },
-  songsHeaderText: {
-    fontSize: 11,
-  },
-  songRow: {
-    borderWidth: 0.5,
-    borderRadius: 12,
-    padding: 10,
-    marginHorizontal: 16,
-    marginVertical: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  songNumber: {
-    fontSize: 11,
-    width: 24,
-    textAlign: 'center',
-  },
-  songInfo: {
-    flex: 1,
-  },
-  songTitle: {
-    fontSize: 12,
-    fontWeight: '500',
-    marginBottom: 2,
-  },
-  songArtist: {
-    fontSize: 10,
-  },
-  duration: {
-    fontSize: 10,
-    width: 30,
-    textAlign: 'right',
-  },
-  miniPlayerWrapper: {
-    position: 'absolute',
-    bottom: 50,
-    left: 0,
-    right: 0,
-  },
-});
