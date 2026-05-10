@@ -1,25 +1,163 @@
+import { Audio, AVPlaybackStatus } from 'expo-av';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { FlatList, Text, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NextIcon, PrevIcon, QueueIcon, ShuffleIcon } from '../components/icons';
 import TabBar from '../components/TabBar';
 import WaveformBars from '../components/WaveformBars';
 import { C } from '../constants/theme';
+import { getStreamUrl } from '../services/stream';
 import { usePlayer } from '../store/playerStore';
+
+function formatTime(secs: number): string {
+  if (!secs || isNaN(secs)) return '0:00';
+  const m = Math.floor(secs / 60);
+  const s = Math.floor(secs % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
 
 export default function PlayerScreen() {
   const router = useRouter();
-  const { song, queue, isPlaying, toggle, next, prev, progress, setSong } = usePlayer();
-  const [showQueue, setShowQueue] = useState(false);
+  const {
+    song,
+    queue,
+    isPlaying,
+    progress,
+    setSong,
+    setIsPlaying,
+    setProgress,
+    next,
+    prev,
+  } = usePlayer();
 
-  // Real queue from store — songs after current, then wrap
+  const [showQueue, setShowQueue] = useState(false);
+  const [loadingStream, setLoadingStream] = useState(false);
+  const [streamError, setStreamError] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [totalDuration, setTotalDuration] = useState(0);
+
+  const soundRef = useRef<Audio.Sound | null>(null);
+  const currentSongIdRef = useRef<string>('');
+
+  // Real queue — songs after current, wrapped around
   const currentIndex = queue.findIndex((s) => s.id === song.id);
   const upNext = currentIndex >= 0
     ? [...queue.slice(currentIndex + 1), ...queue.slice(0, currentIndex)]
     : queue;
-
   const nextSong = upNext[0] ?? null;
+
+  // ── Playback status callback ──
+  const onPlaybackStatusUpdate = useCallback(
+    (status: AVPlaybackStatus) => {
+      if (!status.isLoaded) return;
+
+      const pos = (status.positionMillis ?? 0) / 1000;
+      const dur = (status.durationMillis ?? 0) / 1000;
+
+      setCurrentTime(pos);
+      setTotalDuration(dur);
+      setProgress(dur > 0 ? pos / dur : 0);
+
+      // Auto advance to next song
+      if (status.didJustFinish && nextSong) {
+        setSong(nextSong);
+      }
+    },
+    [nextSong]
+  );
+
+  // ── Load and play ──
+  const loadAndPlay = useCallback(async (songTitle: string, songArtist: string, songId: string) => {
+    // Prevent double-loading same song
+    if (currentSongIdRef.current === songId) return;
+    currentSongIdRef.current = songId;
+
+    try {
+      // Stop and unload previous
+      if (soundRef.current) {
+        await soundRef.current.stopAsync().catch(() => { });
+        await soundRef.current.unloadAsync().catch(() => { });
+        soundRef.current = null;
+      }
+
+      setLoadingStream(true);
+      setStreamError(null);
+      setCurrentTime(0);
+      setTotalDuration(0);
+      setProgress(0);
+
+      // Set audio mode for background + silent mode support
+      await Audio.setAudioModeAsync({
+        playsInSilentModeIOS: true,
+        staysActiveInBackground: true,
+        shouldDuckAndroid: true,
+      });
+
+      // Get stream URL from backend
+      const streamUrl = await getStreamUrl(songTitle, songArtist);
+
+      // Guard — song may have changed while we were fetching
+      if (currentSongIdRef.current !== songId) return;
+
+      // Create and play sound
+      const { sound } = await Audio.Sound.createAsync(
+        { uri: streamUrl },
+        { shouldPlay: true, progressUpdateIntervalMillis: 500 },
+        onPlaybackStatusUpdate
+      );
+
+      soundRef.current = sound;
+      setLoadingStream(false);
+      setIsPlaying(true);
+
+    } catch (err: any) {
+      if (currentSongIdRef.current !== songId) return;
+      console.error('[Player] Error:', err.message);
+      setStreamError(err.message || 'Could not load audio');
+      setLoadingStream(false);
+      setIsPlaying(false);
+    }
+  }, [onPlaybackStatusUpdate]);
+
+  // ── Trigger load when song changes ──
+  useEffect(() => {
+    if (song?.id && song?.title) {
+      loadAndPlay(song.title, song.artist, song.id);
+    }
+    return () => {
+      soundRef.current?.unloadAsync().catch(() => { });
+    };
+  }, [song?.id]);
+
+  // ── Toggle play / pause ──
+  const handleToggle = useCallback(async () => {
+    if (!soundRef.current) return;
+    try {
+      if (isPlaying) {
+        await soundRef.current.pauseAsync();
+        setIsPlaying(false);
+      } else {
+        await soundRef.current.playAsync();
+        setIsPlaying(true);
+      }
+    } catch (err) {
+      console.error('[Player] Toggle error:', err);
+    }
+  }, [isPlaying]);
+
+  // ── Cleanup on unmount ──
+  useEffect(() => {
+    return () => {
+      soundRef.current?.unloadAsync().catch(() => { });
+    };
+  }, []);
 
   return (
     <View style={ { flex: 1, backgroundColor: C.bg } }>
@@ -85,13 +223,23 @@ export default function PlayerScreen() {
           gap: 14,
         } }
       >
-        <WaveformBars
-          color={ song.color }
-          bg="transparent"
-          count={ 9 }
-          isPlaying={ isPlaying }
-          size="lg"
-        />
+        { loadingStream ? (
+          <View style={ { height: 100, alignItems: 'center', justifyContent: 'center', gap: 12 } }>
+            <ActivityIndicator color={ C.purple } size="large" />
+            <Text style={ { color: C.textMuted, fontSize: 12 } }>
+              Finding audio stream...
+            </Text>
+          </View>
+        ) : (
+          <WaveformBars
+            color={ song.color }
+            bg="transparent"
+            count={ 9 }
+            isPlaying={ isPlaying }
+            size="lg"
+          />
+        ) }
+
         <Text
           style={ {
             color: C.text,
@@ -103,17 +251,47 @@ export default function PlayerScreen() {
         >
           { song.title || 'No song selected' }
         </Text>
+
         <Text style={ { color: C.textMuted, fontSize: 13, textAlign: 'center' } }>
           { song.artist }
         </Text>
+
         { song.album ? (
           <Text style={ { color: C.textDim, fontSize: 11, textAlign: 'center' } }>
             { song.album }
           </Text>
         ) : null }
+
+        {/* Error state */ }
+        { streamError && (
+          <View
+            style={ {
+              backgroundColor: '#2a1010',
+              borderRadius: 10,
+              padding: 12,
+              width: '100%',
+              gap: 6,
+            } }
+          >
+            <Text style={ { color: C.coral, fontSize: 11, textAlign: 'center' } }>
+              ⚠ { streamError }
+            </Text>
+            <TouchableOpacity
+              onPress={ () => {
+                currentSongIdRef.current = '';
+                loadAndPlay(song.title, song.artist, song.id);
+              } }
+              style={ { alignItems: 'center' } }
+            >
+              <Text style={ { color: C.purpleLight, fontSize: 12, fontWeight: '500' } }>
+                Retry
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) }
       </View>
 
-      {/* ── Progress ── */ }
+      {/* ── Progress bar ── */ }
       <View
         style={ {
           flexDirection: 'row',
@@ -123,7 +301,9 @@ export default function PlayerScreen() {
           marginBottom: 26,
         } }
       >
-        <Text style={ { color: C.textMuted, fontSize: 11, width: 36 } }>1:21</Text>
+        <Text style={ { color: C.textMuted, fontSize: 11, width: 36 } }>
+          { formatTime(currentTime) }
+        </Text>
         <View
           style={ {
             flex: 1,
@@ -134,11 +314,15 @@ export default function PlayerScreen() {
           } }
         >
           <View
-            style={ { width: `${progress * 100}%`, height: 3, backgroundColor: C.purple } }
+            style={ {
+              width: `${progress * 100}%`,
+              height: 3,
+              backgroundColor: C.purple,
+            } }
           />
         </View>
         <Text style={ { color: C.textMuted, fontSize: 11, width: 36, textAlign: 'right' } }>
-          { song.duration }
+          { formatTime(totalDuration) }
         </Text>
       </View>
 
@@ -166,12 +350,13 @@ export default function PlayerScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={ toggle }
+          onPress={ handleToggle }
+          disabled={ loadingStream }
           style={ {
             width: 66,
             height: 66,
             borderRadius: 33,
-            backgroundColor: C.purple,
+            backgroundColor: loadingStream ? C.purpleDim : C.purple,
             alignItems: 'center',
             justifyContent: 'center',
             shadowColor: C.purple,
@@ -179,7 +364,9 @@ export default function PlayerScreen() {
             shadowRadius: 12,
           } }
         >
-          { isPlaying ? (
+          { loadingStream ? (
+            <ActivityIndicator color="#fff" size="small" />
+          ) : isPlaying ? (
             <View style={ { flexDirection: 'row', gap: 5 } }>
               <View style={ { width: 4, height: 18, backgroundColor: '#fff', borderRadius: 2 } } />
               <View style={ { width: 4, height: 18, backgroundColor: '#fff', borderRadius: 2 } } />
@@ -211,7 +398,7 @@ export default function PlayerScreen() {
         <TouchableOpacity
           style={ { width: 38, height: 38, alignItems: 'center', justifyContent: 'center' } }
         >
-          <QueueIcon />
+          <ShuffleIcon />
         </TouchableOpacity>
       </View>
 
@@ -240,9 +427,7 @@ export default function PlayerScreen() {
           } }
         >
           <Text style={ { color: C.textMuted, fontSize: 10, letterSpacing: 1.2 } }>
-            { showQueue
-              ? `QUEUE · ${upNext.length} SONGS`
-              : 'UP NEXT' }
+            { showQueue ? `QUEUE · ${upNext.length} SONGS` : 'UP NEXT' }
           </Text>
           { upNext.length > 0 && (
             <TouchableOpacity onPress={ () => setShowQueue(!showQueue) }>
@@ -255,9 +440,9 @@ export default function PlayerScreen() {
 
         {/* Empty queue */ }
         { upNext.length === 0 && (
-          <View style={ { flex: 1, alignItems: 'center', justifyContent: 'center' } }>
+          <View style={ { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 6 } }>
             <Text style={ { color: C.textDim, fontSize: 12 } }>No songs in queue</Text>
-            <Text style={ { color: C.textDim, fontSize: 11, marginTop: 4 } }>
+            <Text style={ { color: C.textDim, fontSize: 11 } }>
               Search for music to build your queue
             </Text>
           </View>
@@ -329,7 +514,6 @@ export default function PlayerScreen() {
                 >
                   { index + 1 }
                 </Text>
-
                 <WaveformBars
                   color={ item.color }
                   bg={ item.bg }
@@ -337,7 +521,6 @@ export default function PlayerScreen() {
                   isPlaying={ false }
                   size="sm"
                 />
-
                 <View style={ { flex: 1 } }>
                   <Text
                     numberOfLines={ 1 }
@@ -355,7 +538,6 @@ export default function PlayerScreen() {
                     { item.album ? ` · ${item.album}` : '' }
                   </Text>
                 </View>
-
                 <Text style={ { fontSize: 10, color: C.textDim } }>{ item.duration }</Text>
               </TouchableOpacity>
             ) }

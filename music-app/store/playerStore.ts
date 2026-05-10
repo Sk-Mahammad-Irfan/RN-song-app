@@ -7,8 +7,8 @@ export type Song = {
   duration: string;
   color: string;
   bg: string;
-  releaseId?: string;
   album?: string;
+  releaseId?: string;
   coverArt?: string | null;
 };
 
@@ -20,6 +20,8 @@ type PlayerState = {
   toggle: () => void;
   setSong: (song: Song) => void;
   setQueue: (songs: Song[], startIndex?: number) => void;
+  setIsPlaying: (val: boolean) => void;
+  setProgress: (val: number) => void;
   next: () => void;
   prev: () => void;
 };
@@ -37,19 +39,22 @@ export const usePlayer = create<PlayerState>((set, get) => ({
   song: defaultSong,
   queue: [],
   isPlaying: false,
-  progress: 0.38,
+  progress: 0,
 
   toggle: () => set((s) => ({ isPlaying: !s.isPlaying })),
 
   setSong: (song) => set({ song, isPlaying: true }),
 
-  setQueue: (songs, startIndex = 0) => {
+  setQueue: (songs, startIndex = 0) =>
     set({
       song: songs[startIndex],
       queue: songs,
       isPlaying: true,
-    });
-  },
+    }),
+
+  setIsPlaying: (val) => set({ isPlaying: val }),
+
+  setProgress: (val) => set({ progress: val }),
 
   next: () => {
     const { song, queue } = get();
