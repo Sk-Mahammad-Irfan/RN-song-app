@@ -54,7 +54,7 @@ export default function MeScreen() {
             }}
           >
             <Text style={{ color: C.text, fontSize: 22, fontWeight: '600' }}>
-              AH
+              SI
             </Text>
           </View>
         </View>
@@ -69,7 +69,7 @@ export default function MeScreen() {
             marginBottom: 4,
           }}
         >
-          Arjun H
+          Sk Mahammad Irfan
         </Text>
         <Text
           style={{
