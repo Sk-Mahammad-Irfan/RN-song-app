@@ -1,8 +1,10 @@
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  GestureResponderEvent,
+  LayoutChangeEvent,
   Text,
   TouchableOpacity,
   View,
@@ -21,6 +23,14 @@ function formatTime(secs: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
+function HeartIcon({ filled, color }: { filled: boolean; color: string }) {
+  return (
+    <Text style={ { fontSize: 22, color, lineHeight: 26 } }>
+      { filled ? '♥' : '♡' }
+    </Text>
+  );
+}
+
 export default function PlayerScreen() {
   const router = useRouter();
   const {
@@ -35,18 +45,59 @@ export default function PlayerScreen() {
     togglePlay,
     next,
     prev,
-    setSong: _setSong,
     playSong,
     seekTo,
+    toggleLike,
   } = usePlayer();
 
   const [showQueue, setShowQueue] = useState(false);
+  const [isSeeking, setIsSeeking] = useState(false);
+  const [seekProgress, setSeekProgress] = useState(0);
+  const progressBarWidth = useRef(0);
+
+  const liked = usePlayer((state) =>
+    state.likedSongs.some((s) => s.id === song.id)
+  );
 
   const currentIndex = queue.findIndex((s) => s.id === song.id);
   const upNext = currentIndex >= 0
     ? [...queue.slice(currentIndex + 1), ...queue.slice(0, currentIndex)]
     : queue;
   const nextSong = upNext[0] ?? null;
+
+  // ── Progress bar layout measurement ──
+  const onProgressLayout = useCallback((e: LayoutChangeEvent) => {
+    progressBarWidth.current = e.nativeEvent.layout.width;
+  }, []);
+
+  // ── Calculate seek ratio from touch position ──
+  const getTouchRatio = useCallback((e: GestureResponderEvent): number => {
+    const x = e.nativeEvent.locationX;
+    const ratio = Math.min(Math.max(x / progressBarWidth.current, 0), 1);
+    return ratio;
+  }, []);
+
+  const handleSeekStart = useCallback((e: GestureResponderEvent) => {
+    setIsSeeking(true);
+    setSeekProgress(getTouchRatio(e));
+  }, [getTouchRatio]);
+
+  const handleSeekMove = useCallback((e: GestureResponderEvent) => {
+    if (!isSeeking) return;
+    setSeekProgress(getTouchRatio(e));
+  }, [isSeeking, getTouchRatio]);
+
+  const handleSeekEnd = useCallback(async (e: GestureResponderEvent) => {
+    const ratio = getTouchRatio(e);
+    setSeekProgress(ratio);
+    setIsSeeking(false);
+    await seekTo(ratio);
+  }, [getTouchRatio, seekTo]);
+
+  const displayProgress = isSeeking ? seekProgress : progress;
+  const displayTime = isSeeking
+    ? formatTime(seekProgress * totalDuration)
+    : formatTime(currentTime);
 
   return (
     <View style={ { flex: 1, backgroundColor: C.bg } }>
@@ -129,30 +180,87 @@ export default function PlayerScreen() {
           />
         ) }
 
-        <Text style={ { color: C.text, fontSize: 20, fontWeight: '600', textAlign: 'center', marginTop: 6 } }>
-          { song.title || 'No song selected' }
-        </Text>
-        <Text style={ { color: C.textMuted, fontSize: 13, textAlign: 'center' } }>
-          { song.artist }
-        </Text>
-        { song.album ? (
-          <Text style={ { color: C.textDim, fontSize: 11, textAlign: 'center' } }>
-            { song.album }
-          </Text>
-        ) : null }
+        {/* Title row with heart */ }
+        <View
+          style={ {
+            width: '100%',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginTop: 6,
+            paddingHorizontal: 4,
+          } }
+        >
+          <View style={ { flex: 1 } }>
+            <Text
+              numberOfLines={ 1 }
+              style={ { color: C.text, fontSize: 20, fontWeight: '600' } }
+            >
+              { song.title || 'No song selected' }
+            </Text>
+            <Text
+              numberOfLines={ 1 }
+              style={ { color: C.textMuted, fontSize: 13, marginTop: 4 } }
+            >
+              { song.artist }
+            </Text>
+            { song.album ? (
+              <Text
+                numberOfLines={ 1 }
+                style={ { color: C.textDim, fontSize: 11, marginTop: 2 } }
+              >
+                { song.album }
+              </Text>
+            ) : null }
+          </View>
+
+          {/* ── Heart button ── */ }
+          <TouchableOpacity
+            onPress={ () => toggleLike(song) }
+            activeOpacity={ 0.7 }
+            style={ {
+              width: 44,
+              height: 44,
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginLeft: 8,
+              backgroundColor: liked ? C.purpleDim : 'transparent',
+              borderRadius: 22,
+              borderWidth: liked ? 0 : 0.5,
+              borderColor: C.border,
+            } }
+          >
+            <HeartIcon filled={ liked } color={ liked ? C.purple : C.textMuted } />
+          </TouchableOpacity>
+        </View>
 
         {/* Error */ }
         { error && (
-          <View style={ { backgroundColor: '#2a1010', borderRadius: 10, padding: 12, width: '100%', gap: 6 } }>
-            <Text style={ { color: C.coral, fontSize: 11, textAlign: 'center' } }>⚠ { error }</Text>
-            <TouchableOpacity onPress={ () => playSong(song) } style={ { alignItems: 'center' } }>
-              <Text style={ { color: C.purpleLight, fontSize: 12, fontWeight: '500' } }>Retry</Text>
+          <View
+            style={ {
+              backgroundColor: '#2a1010',
+              borderRadius: 10,
+              padding: 12,
+              width: '100%',
+              gap: 6,
+            } }
+          >
+            <Text style={ { color: C.coral, fontSize: 11, textAlign: 'center' } }>
+              ⚠ { error }
+            </Text>
+            <TouchableOpacity
+              onPress={ () => playSong(song) }
+              style={ { alignItems: 'center' } }
+            >
+              <Text style={ { color: C.purpleLight, fontSize: 12, fontWeight: '500' } }>
+                Retry
+              </Text>
             </TouchableOpacity>
           </View>
         ) }
       </View>
 
-      {/* ── Progress bar ── */ }
+      {/* ── Progress bar (tappable + draggable) ── */ }
       <View
         style={ {
           flexDirection: 'row',
@@ -162,12 +270,60 @@ export default function PlayerScreen() {
           marginBottom: 26,
         } }
       >
-        <Text style={ { color: C.textMuted, fontSize: 11, width: 36 } }>
-          { formatTime(currentTime) }
+        <Text style={ { color: isSeeking ? C.text : C.textMuted, fontSize: 11, width: 36 } }>
+          { displayTime }
         </Text>
-        <View style={ { flex: 1, height: 3, backgroundColor: C.border, borderRadius: 2, overflow: 'hidden' } }>
-          <View style={ { width: `${progress * 100}%`, height: 3, backgroundColor: C.purple } } />
+
+        {/* Touch area — taller than visual bar for easier tapping */ }
+        <View
+          style={ { flex: 1, height: 28, justifyContent: 'center' } }
+          onLayout={ onProgressLayout }
+          onStartShouldSetResponder={ () => true }
+          onMoveShouldSetResponder={ () => true }
+          onResponderGrant={ handleSeekStart }
+          onResponderMove={ handleSeekMove }
+          onResponderRelease={ handleSeekEnd }
+        >
+          {/* Track */ }
+          <View
+            style={ {
+              height: isSeeking ? 5 : 3,
+              backgroundColor: C.border,
+              borderRadius: 3,
+              overflow: 'hidden',
+            } }
+          >
+            <View
+              style={ {
+                width: `${displayProgress * 100}%`,
+                height: '100%',
+                backgroundColor: isSeeking ? C.purpleLight : C.purple,
+                borderRadius: 3,
+              } }
+            />
+          </View>
+
+          {/* Thumb dot — only visible while seeking */ }
+          { isSeeking && (
+            <View
+              style={ {
+                position: 'absolute',
+                left: `${displayProgress * 100}%`,
+                top: '50%',
+                width: 14,
+                height: 14,
+                borderRadius: 7,
+                backgroundColor: C.purpleLight,
+                marginLeft: -7,
+                marginTop: -7,
+                shadowColor: C.purple,
+                shadowOpacity: 0.6,
+                shadowRadius: 4,
+              } }
+            />
+          ) }
         </View>
+
         <Text style={ { color: C.textMuted, fontSize: 11, width: 36, textAlign: 'right' } }>
           { formatTime(totalDuration) }
         </Text>
@@ -183,7 +339,9 @@ export default function PlayerScreen() {
           marginBottom: 24,
         } }
       >
-        <TouchableOpacity style={ { width: 38, height: 38, alignItems: 'center', justifyContent: 'center' } }>
+        <TouchableOpacity
+          style={ { width: 38, height: 38, alignItems: 'center', justifyContent: 'center' } }
+        >
           <ShuffleIcon />
         </TouchableOpacity>
 
@@ -240,7 +398,9 @@ export default function PlayerScreen() {
           <NextIcon />
         </TouchableOpacity>
 
-        <TouchableOpacity style={ { width: 38, height: 38, alignItems: 'center', justifyContent: 'center' } }>
+        <TouchableOpacity
+          style={ { width: 38, height: 38, alignItems: 'center', justifyContent: 'center' } }
+        >
           <ShuffleIcon />
         </TouchableOpacity>
       </View>
@@ -283,7 +443,9 @@ export default function PlayerScreen() {
         { upNext.length === 0 && (
           <View style={ { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 6 } }>
             <Text style={ { color: C.textDim, fontSize: 12 } }>No songs in queue</Text>
-            <Text style={ { color: C.textDim, fontSize: 11 } }>Search for music to build your queue</Text>
+            <Text style={ { color: C.textDim, fontSize: 11 } }>
+              Search for music to build your queue
+            </Text>
           </View>
         ) }
 
@@ -291,12 +453,28 @@ export default function PlayerScreen() {
           <TouchableOpacity
             onPress={ () => playSong(nextSong) }
             activeOpacity={ 0.75 }
-            style={ { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 12 } }
+            style={ {
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 12,
+              paddingHorizontal: 14,
+              paddingVertical: 12,
+            } }
           >
-            <WaveformBars color={ nextSong.color } bg={ nextSong.bg } count={ 3 } isPlaying={ false } size="sm" />
+            <WaveformBars
+              color={ nextSong.color }
+              bg={ nextSong.bg }
+              count={ 3 }
+              isPlaying={ false }
+              size="sm"
+            />
             <View style={ { flex: 1 } }>
-              <Text style={ { color: '#c8c8d8', fontSize: 13, fontWeight: '500' } }>{ nextSong.title }</Text>
-              <Text style={ { color: C.textMuted, fontSize: 11, marginTop: 2 } }>{ nextSong.artist }</Text>
+              <Text style={ { color: '#c8c8d8', fontSize: 13, fontWeight: '500' } }>
+                { nextSong.title }
+              </Text>
+              <Text style={ { color: C.textMuted, fontSize: 11, marginTop: 2 } }>
+                { nextSong.artist }
+              </Text>
             </View>
             <Text style={ { color: C.textDim, fontSize: 11 } }>{ nextSong.duration }</Text>
           </TouchableOpacity>
@@ -322,12 +500,33 @@ export default function PlayerScreen() {
                   backgroundColor: index === 0 ? '#16162a' : 'transparent',
                 } }
               >
-                <Text style={ { fontSize: 11, color: index === 0 ? C.purpleLight : C.textDim, width: 20, textAlign: 'center' } }>
+                <Text
+                  style={ {
+                    fontSize: 11,
+                    color: index === 0 ? C.purpleLight : C.textDim,
+                    width: 20,
+                    textAlign: 'center',
+                  } }
+                >
                   { index + 1 }
                 </Text>
-                <WaveformBars color={ item.color } bg={ item.bg } count={ 3 } isPlaying={ false } size="sm" />
+                <WaveformBars
+                  color={ item.color }
+                  bg={ item.bg }
+                  count={ 3 }
+                  isPlaying={ false }
+                  size="sm"
+                />
                 <View style={ { flex: 1 } }>
-                  <Text numberOfLines={ 1 } style={ { fontSize: 12, fontWeight: index === 0 ? '500' : '400', color: index === 0 ? C.text : '#c8c8d8', marginBottom: 2 } }>
+                  <Text
+                    numberOfLines={ 1 }
+                    style={ {
+                      fontSize: 12,
+                      fontWeight: index === 0 ? '500' : '400',
+                      color: index === 0 ? C.text : '#c8c8d8',
+                      marginBottom: 2,
+                    } }
+                  >
                     { item.title }
                   </Text>
                   <Text style={ { fontSize: 10, color: C.textMuted } }>
