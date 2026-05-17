@@ -216,7 +216,7 @@ export default function PlayerScreen() {
 
           {/* ── Heart button ── */ }
           <TouchableOpacity
-            onPress={ () => toggleLike(song) }
+            onPress={ () => { toggleLike(song); } }
             activeOpacity={ 0.7 }
             style={ {
               width: 44,
