@@ -1,22 +1,22 @@
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    FlatList,
-    Image,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  FlatList,
+  Image,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MiniPlayer from '../../components/MiniPlayer';
-import RequestCard from '../../components/RequestCard';
 import WaveformBars from '../../components/WaveformBars';
 import { C } from '../../constants/theme';
 import { SongWithArt, useMusicBrainz } from '../../hooks/useMusicBrainz';
 import { usePlayer } from '../../store/playerStore';
+import { addRequest } from '../../services/requests';
 
 const textures = [
   { id: '1', name: 'Deep focus', genre: 'ambient · lo-fi', color: '#5a4be8', bg: '#13102a' },
@@ -24,10 +24,6 @@ const textures = [
   { id: '3', name: 'Electric rush', genre: 'alt · electronic', color: '#d85a30', bg: '#1e1010' },
   { id: '4', name: 'Late night', genre: 'jazz · soul', color: '#888780', bg: '#101018' },
 ];
-
-// ─────────────────────────────────────────────
-// Result card — shows MusicBrainz song data
-// ─────────────────────────────────────────────
 
 function MBSongCard({ song, onPress }: { song: SongWithArt; onPress: () => void }) {
   return (
@@ -47,32 +43,19 @@ function MBSongCard({ song, onPress }: { song: SongWithArt; onPress: () => void 
         gap: 12,
       } }
     >
-      {/* Cover art or waveform bars fallback */ }
       { song.coverArt ? (
-        <Image
-          source={ { uri: song.coverArt } }
-          style={ { width: 44, height: 44, borderRadius: 10 } }
-        />
+        <Image source={ { uri: song.coverArt } } style={ { width: 44, height: 44, borderRadius: 10 } } />
       ) : (
         <WaveformBars color={ song.color } bg={ song.bg } count={ 4 } size="sm" />
       ) }
 
       <View style={ { flex: 1 } }>
-        <Text
-          numberOfLines={ 1 }
-          style={ { fontSize: 13, fontWeight: '500', color: C.text, marginBottom: 3 } }
-        >
+        <Text numberOfLines={ 1 } style={ { fontSize: 13, fontWeight: '500', color: C.text, marginBottom: 3 } }>
           { song.title }
         </Text>
-        <Text
-          numberOfLines={ 1 }
-          style={ { fontSize: 11, color: C.textMuted } }
-        >
-          { song.artist }
-          { song.album ? ` · ${song.album}` : '' }
+        <Text numberOfLines={ 1 } style={ { fontSize: 11, color: C.textMuted } }>
+          { song.artist }{ song.album ? ` · ${song.album}` : '' }
         </Text>
-
-        {/* Genre tags */ }
         { song.genres.length > 0 && (
           <View style={ { flexDirection: 'row', gap: 4, marginTop: 5, flexWrap: 'wrap' } }>
             { song.genres.slice(0, 2).map((g) => (
@@ -94,31 +77,51 @@ function MBSongCard({ song, onPress }: { song: SongWithArt; onPress: () => void 
         ) }
       </View>
 
-      {/* Duration */ }
       <Text style={ { fontSize: 11, color: C.textDim } }>{ song.duration }</Text>
     </TouchableOpacity>
   );
 }
 
-// ─────────────────────────────────────────────
-// Main screen
-// ─────────────────────────────────────────────
-
 export default function FindScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { setSong } = usePlayer();
-  const { query, setQuery, results, loading, noResults, clear } = useMusicBrainz();
+  const { setQueue } = usePlayer();
+  const {
+    query,
+    setQuery,
+    results,
+    loading,
+    loadingMore,
+    noResults,
+    hasMore,
+    total,
+    loadMore,
+    clear,
+  } = useMusicBrainz();
+
+  const [requesting, setRequesting] = useState(false);
+  const [requested, setRequested] = useState(false);
 
   const showBrowse = !query;
   const showResults = !!query && results.length > 0;
   const showNoResults = noResults;
   const showLoading = loading && !!query;
-  const { setQueue } = usePlayer();
 
+  // Reset requested state when query changes
+  const handleQueryChange = (text: string) => {
+    setQuery(text);
+    if (requested) setRequested(false);
+  };
+
+  const handleRequest = async () => {
+    if (!query.trim() || requesting || requested) return;
+    setRequesting(true);
+    await addRequest(query.trim(), 'Unknown Artist');
+    setRequesting(false);
+    setRequested(true);
+  };
 
   const handleSongPress = (song: SongWithArt, index: number) => {
-    // Convert all results to Song shape
     const queue = results.map((s) => ({
       id: s.id,
       title: s.title,
@@ -130,8 +133,6 @@ export default function FindScreen() {
       album: s.album,
       coverArt: s.coverArt,
     }));
-
-    // Set entire search results as queue, start from tapped song
     setQueue(queue, index);
     router.push('/player');
   };
@@ -170,7 +171,6 @@ export default function FindScreen() {
             marginBottom: 20,
           } }
         >
-          {/* Search icon */ }
           <View
             style={ {
               width: 13,
@@ -184,12 +184,11 @@ export default function FindScreen() {
             placeholder="Song, artist, mood..."
             placeholderTextColor={ C.textMuted }
             value={ query }
-            onChangeText={ setQuery }
+            onChangeText={ handleQueryChange }
             autoCorrect={ false }
             autoCapitalize="none"
             style={ { flex: 1, fontSize: 13, color: C.text } }
           />
-          {/* Clear button */ }
           { !!query && (
             <TouchableOpacity onPress={ clear }>
               <Text style={ { color: C.textMuted, fontSize: 16, lineHeight: 18 } }>✕</Text>
@@ -328,10 +327,63 @@ export default function FindScreen() {
                 color: C.textMuted,
                 marginHorizontal: 16,
                 marginBottom: 10,
+                marginTop: 4,
               } }
             >
-              { results.length } RESULTS FOR "{ query.toUpperCase() }"
+              { total > 0
+                ? `${results.length} OF ${total} RESULTS FOR "${query.toUpperCase()}"`
+                : `${results.length} RESULTS FOR "${query.toUpperCase()}"` }
             </Text>
+          }
+          ListFooterComponent={
+            hasMore ? (
+              <TouchableOpacity
+                onPress={ loadMore }
+                disabled={ loadingMore }
+                activeOpacity={ 0.8 }
+                style={ {
+                  marginHorizontal: 16,
+                  marginTop: 8,
+                  marginBottom: 16,
+                  paddingVertical: 14,
+                  borderRadius: 12,
+                  backgroundColor: C.card,
+                  borderWidth: 0.5,
+                  borderColor: C.border,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexDirection: 'row',
+                  gap: 8,
+                } }
+              >
+                { loadingMore ? (
+                  <>
+                    <ActivityIndicator color={ C.purple } size="small" />
+                    <Text style={ { color: C.textMuted, fontSize: 13 } }>Loading more...</Text>
+                  </>
+                ) : (
+                  <>
+                    <Text style={ { color: C.purpleLight, fontSize: 13, fontWeight: '500' } }>
+                      Load more
+                    </Text>
+                    <Text style={ { color: C.textDim, fontSize: 11 } }>
+                      { total - results.length } remaining
+                    </Text>
+                  </>
+                ) }
+              </TouchableOpacity>
+            ) : results.length > 0 ? (
+              <Text
+                style={ {
+                  textAlign: 'center',
+                  color: C.textDim,
+                  fontSize: 11,
+                  paddingVertical: 16,
+                } }
+              >
+                All { results.length } results shown
+              </Text>
+            ) : null
           }
         />
       ) }
@@ -342,8 +394,94 @@ export default function FindScreen() {
           showsVerticalScrollIndicator={ false }
           contentContainerStyle={ { paddingBottom: 120 } }
         >
-          <RequestCard songName={ query } />
+          {/* Request card */ }
+          <View
+            style={ {
+              backgroundColor: C.surface,
+              borderWidth: 0.5,
+              borderColor: '#2a2040',
+              borderRadius: 16,
+              padding: 16,
+              marginHorizontal: 16,
+              marginVertical: 12,
+              gap: 14,
+            } }
+          >
+            <View style={ { flexDirection: 'row', alignItems: 'center', gap: 10 } }>
+              <View
+                style={ {
+                  width: 34,
+                  height: 34,
+                  borderRadius: 9,
+                  backgroundColor: '#1a1430',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                } }
+              >
+                <Text style={ { fontSize: 16 } }>🔍</Text>
+              </View>
+              <View style={ { flex: 1 } }>
+                <Text style={ { fontSize: 13, fontWeight: '500', color: C.text, marginBottom: 2 } }>
+                  Not in Waveform yet
+                </Text>
+                <Text style={ { fontSize: 11, color: C.textMuted } } numberOfLines={ 1 }>
+                  "{ query }"
+                </Text>
+              </View>
+            </View>
 
+            <View
+              style={ {
+                backgroundColor: '#13102a',
+                borderRadius: 10,
+                padding: 12,
+                flexDirection: 'row',
+                gap: 12,
+              } }
+            >
+              <View style={ { width: 2.5, backgroundColor: C.purple, borderRadius: 2 } } />
+              <View style={ { flex: 1 } }>
+                <Text style={ { fontSize: 10, color: C.purpleLight, marginBottom: 3 } }>
+                  Expected availability
+                </Text>
+                <Text style={ { fontSize: 16, fontWeight: '600', color: C.text, marginBottom: 2 } }>
+                  2–3 days
+                </Text>
+                <Text style={ { fontSize: 10, color: C.textMuted } }>
+                  We'll add it as soon as possible
+                </Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              onPress={ handleRequest }
+              disabled={ requesting || requested }
+              style={ {
+                paddingVertical: 13,
+                borderRadius: 10,
+                alignItems: 'center',
+                backgroundColor: requested ? C.tealDim : C.purple,
+                borderWidth: requested ? 0.5 : 0,
+                borderColor: C.teal,
+              } }
+            >
+              { requesting ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Text
+                  style={ {
+                    fontSize: 13,
+                    fontWeight: '600',
+                    color: requested ? C.teal : '#fff',
+                  } }
+                >
+                  { requested ? '✓ Requested — check Me tab' : 'Request this song' }
+                </Text>
+              ) }
+            </TouchableOpacity>
+          </View>
+
+          {/* While you wait */ }
           <Text
             style={ {
               fontSize: 9,
@@ -399,9 +537,7 @@ export default function FindScreen() {
       ) }
 
       {/* ── Mini Player ── */ }
-      <View style={ { position: 'static', bottom: 50, left: 0, right: 0 } }>
-        <MiniPlayer />
-      </View>
+      <MiniPlayer />
     </View>
   );
 }

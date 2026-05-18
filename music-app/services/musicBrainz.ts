@@ -63,10 +63,10 @@ async function rateLimitedFetch(url: string): Promise<Response> {
 // Search songs by query string
 // ─────────────────────────────────────────────
 
-export async function searchSongs(query: string, limit = 10): Promise<MBSearchResult> {
+export async function searchSongs(query: string, limit = 10, offset = 0): Promise<MBSearchResult> {
   try {
     const encoded = encodeURIComponent(query);
-    const url = `${MB_BASE}/recording/?query=${encoded}&limit=${limit}&fmt=json`;
+    const url = `${MB_BASE}/recording/?query=${encoded}&limit=${limit}&offset=${offset}&fmt=json`;
     const res = await rateLimitedFetch(url);
 
     if (!res.ok) throw new Error(`MusicBrainz error: ${res.status}`);
