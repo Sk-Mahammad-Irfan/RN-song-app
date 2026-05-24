@@ -16,7 +16,6 @@ import WaveformBars from '../../components/WaveformBars';
 import { C } from '../../constants/theme';
 import { SongWithArt, useMusicBrainz } from '../../hooks/useMusicBrainz';
 import { usePlayer } from '../../store/playerStore';
-import { addRequest } from '../../services/requests';
 
 const textures = [
   { id: '1', name: 'Deep focus', genre: 'ambient · lo-fi', color: '#5a4be8', bg: '#13102a' },
@@ -111,14 +110,6 @@ export default function FindScreen() {
   const handleQueryChange = (text: string) => {
     setQuery(text);
     if (requested) setRequested(false);
-  };
-
-  const handleRequest = async () => {
-    if (!query.trim() || requesting || requested) return;
-    setRequesting(true);
-    await addRequest(query.trim(), 'Unknown Artist');
-    setRequesting(false);
-    setRequested(true);
   };
 
   const handleSongPress = (song: SongWithArt, index: number) => {
@@ -394,108 +385,7 @@ export default function FindScreen() {
           showsVerticalScrollIndicator={ false }
           contentContainerStyle={ { paddingBottom: 120 } }
         >
-          {/* Request card */ }
-          <View
-            style={ {
-              backgroundColor: C.surface,
-              borderWidth: 0.5,
-              borderColor: '#2a2040',
-              borderRadius: 16,
-              padding: 16,
-              marginHorizontal: 16,
-              marginVertical: 12,
-              gap: 14,
-            } }
-          >
-            <View style={ { flexDirection: 'row', alignItems: 'center', gap: 10 } }>
-              <View
-                style={ {
-                  width: 34,
-                  height: 34,
-                  borderRadius: 9,
-                  backgroundColor: '#1a1430',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                } }
-              >
-                <Text style={ { fontSize: 16 } }>🔍</Text>
-              </View>
-              <View style={ { flex: 1 } }>
-                <Text style={ { fontSize: 13, fontWeight: '500', color: C.text, marginBottom: 2 } }>
-                  Not in Waveform yet
-                </Text>
-                <Text style={ { fontSize: 11, color: C.textMuted } } numberOfLines={ 1 }>
-                  "{ query }"
-                </Text>
-              </View>
-            </View>
-
-            <View
-              style={ {
-                backgroundColor: '#13102a',
-                borderRadius: 10,
-                padding: 12,
-                flexDirection: 'row',
-                gap: 12,
-              } }
-            >
-              <View style={ { width: 2.5, backgroundColor: C.purple, borderRadius: 2 } } />
-              <View style={ { flex: 1 } }>
-                <Text style={ { fontSize: 10, color: C.purpleLight, marginBottom: 3 } }>
-                  Expected availability
-                </Text>
-                <Text style={ { fontSize: 16, fontWeight: '600', color: C.text, marginBottom: 2 } }>
-                  2–3 days
-                </Text>
-                <Text style={ { fontSize: 10, color: C.textMuted } }>
-                  We'll add it as soon as possible
-                </Text>
-              </View>
-            </View>
-
-            <TouchableOpacity
-              onPress={ handleRequest }
-              disabled={ requesting || requested }
-              style={ {
-                paddingVertical: 13,
-                borderRadius: 10,
-                alignItems: 'center',
-                backgroundColor: requested ? C.tealDim : C.purple,
-                borderWidth: requested ? 0.5 : 0,
-                borderColor: C.teal,
-              } }
-            >
-              { requesting ? (
-                <ActivityIndicator color="#fff" size="small" />
-              ) : (
-                <Text
-                  style={ {
-                    fontSize: 13,
-                    fontWeight: '600',
-                    color: requested ? C.teal : '#fff',
-                  } }
-                >
-                  { requested ? '✓ Requested — check Me tab' : 'Request this song' }
-                </Text>
-              ) }
-            </TouchableOpacity>
-          </View>
-
           {/* While you wait */ }
-          <Text
-            style={ {
-              fontSize: 9,
-              letterSpacing: 1.2,
-              fontWeight: '600',
-              color: C.textMuted,
-              marginHorizontal: 16,
-              marginTop: 8,
-              marginBottom: 12,
-            } }
-          >
-            WHILE YOU WAIT
-          </Text>
-
           <View style={ { flexDirection: 'row', paddingHorizontal: 16, gap: 10 } }>
             <TouchableOpacity
               activeOpacity={ 0.8 }

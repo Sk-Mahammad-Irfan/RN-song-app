@@ -8,6 +8,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  RefreshControl
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MiniPlayer from '../../components/MiniPlayer';
@@ -48,6 +49,7 @@ export default function MeScreen() {
   const [searchState, setSearchState] = useState<SearchState>('idle');
   const [foundSong, setFoundSong] = useState<any>(null);
   const [formError, setFormError] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
   const displayRequests =
     activeTab === 'pending' ? pendingRequests : readyRequests;
@@ -58,6 +60,12 @@ export default function MeScreen() {
     setSearchState('idle');
     setFoundSong(null);
     setFormError('');
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await refresh();
+    setRefreshing(false);
   };
 
   const handleSearch = async () => {
@@ -141,7 +149,14 @@ export default function MeScreen() {
         keyExtractor={ (item) => String(item.id) }
         showsVerticalScrollIndicator={ false }
         keyboardShouldPersistTaps="handled"
-        // ── No pull-to-refresh ──
+        refreshControl={
+          <RefreshControl
+            refreshing={ refreshing }
+            onRefresh={ onRefresh }
+            tintColor={ C.purple }
+            colors={ [C.purple] }
+          />
+        }
 
         ListHeaderComponent={
           <View style={ { paddingTop: insets.top + 16 } }>
