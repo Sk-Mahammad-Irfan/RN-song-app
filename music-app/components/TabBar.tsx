@@ -1,32 +1,55 @@
 import { usePathname, useRouter } from 'expo-router';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
-import { C } from '../constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabBar() {
   const router = useRouter();
   const pathname = usePathname();
+  const insets = useSafeAreaInsets();
 
   const tabs = [
-    { key: 'index', label: 'home', route: '/' },
-    { key: 'find', label: 'find', route: '/find' },
-    { key: 'waves', label: 'waves', route: '/waves' },
-    { key: 'me', label: 'me', route: '/me' },
+    { key: 'index', label: 'Home', route: '/' },
+    { key: 'find', label: 'Find', route: '/find' },
+    { key: 'waves', label: 'Waves', route: '/waves' },
+    { key: 'me', label: 'Me', route: '/me' },
   ] as const;
 
   return (
     <View
-      style={{
-        backgroundColor: '#0f0f18',
-        borderTopWidth: 0.5,
-        borderTopColor: C.border,
+      style={ {
+        position: 'absolute',
+        left: 16,
+        right: 16,
+
+        // Safe area aware
+        bottom: Math.max(insets.bottom, 12),
+
+        height: 76,
+
         flexDirection: 'row',
+        alignItems: 'center',
         justifyContent: 'space-around',
-        paddingTop: 10,
-        paddingBottom: 24,
-      }}
+
+        backgroundColor: '#13131D',
+
+        borderRadius: 30,
+
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.06)',
+
+        shadowColor: '#000',
+        shadowOpacity: 0.35,
+        shadowRadius: 24,
+        shadowOffset: {
+          width: 0,
+          height: 12,
+        },
+
+        elevation: 20,
+      } }
     >
-      {tabs.map((tab) => {
+      { tabs.map((tab) => {
         const isActive =
           tab.route === '/'
             ? pathname === '/' || pathname === '/index'
@@ -34,41 +57,63 @@ export default function TabBar() {
 
         return (
           <TouchableOpacity
-            key={tab.key}
-            onPress={() => router.push(tab.route)}
-            activeOpacity={0.75}
-            style={{ alignItems: 'center', gap: 4, minWidth: 60 }}
+            key={ tab.key }
+            activeOpacity={ 0.8 }
+            onPress={ () => router.push(tab.route) }
+            style={ {
+              flex: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+            } }
           >
-            <TabIcon name={tab.key} active={isActive} />
-            {isActive && (
-              <View
-                style={{
-                  width: 4,
-                  height: 4,
-                  borderRadius: 2,
-                  backgroundColor: C.purple,
-                  marginTop: 1,
-                }}
-              />
-            )}
-            <Text
-              style={{
-                fontSize: 10,
-                color: isActive ? C.purpleLight : C.textMuted,
-              }}
+            <View
+              style={ {
+                width: 44,
+                height: 44,
+                borderRadius: 22,
+
+                alignItems: 'center',
+                justifyContent: 'center',
+
+                backgroundColor: isActive
+                  ? 'rgba(139,128,240,0.18)'
+                  : 'transparent',
+
+                borderWidth: isActive ? 1 : 0,
+                borderColor: 'rgba(139,128,240,0.35)',
+              } }
             >
-              {tab.label}
+              <TabIcon name={ tab.key } active={ isActive } />
+            </View>
+
+            <Text
+              style={ {
+                marginTop: 4,
+                fontSize: 11,
+                fontWeight: isActive ? '600' : '500',
+                color: isActive ? '#FFFFFF' : '#777790',
+                letterSpacing: 0.3,
+              } }
+            >
+              { tab.label }
             </Text>
           </TouchableOpacity>
         );
-      })}
+      }) }
     </View>
   );
 }
 
-function TabIcon({ name, active }: { name: string; active: boolean }) {
-  const color = active ? '#8b80f0' : '#3a3a4e';
-  const size = 20;
+function TabIcon({
+  name,
+  active,
+}: {
+  name: string;
+  active: boolean;
+}) {
+  const color = active ? '#A899FF' : '#5A5A72';
+  const size = 22;
+
   const box = {
     width: size,
     height: size,
@@ -78,27 +123,27 @@ function TabIcon({ name, active }: { name: string; active: boolean }) {
 
   if (name === 'index') {
     return (
-      <View style={box}>
+      <View style={ box }>
         <View
-          style={{
+          style={ {
             width: size,
             height: size,
             borderRadius: size / 2,
-            borderWidth: 1.5,
+            borderWidth: 1.7,
             borderColor: color,
             alignItems: 'center',
             justifyContent: 'center',
-          }}
+          } }
         >
           <View
-            style={{
-              width: 7,
-              height: 7,
+            style={ {
+              width: 8,
+              height: 8,
               borderRadius: 4,
               backgroundColor: active ? color : 'transparent',
-              borderWidth: active ? 0 : 1,
+              borderWidth: active ? 0 : 1.5,
               borderColor: color,
-            }}
+            } }
           />
         </View>
       </View>
@@ -107,26 +152,32 @@ function TabIcon({ name, active }: { name: string; active: boolean }) {
 
   if (name === 'find') {
     return (
-      <View style={box}>
+      <View style={ box }>
         <View
-          style={{
+          style={ {
             width: size,
             height: size,
             borderRadius: size / 2,
-            borderWidth: 1.5,
+            borderWidth: 1.7,
             borderColor: color,
             alignItems: 'center',
             justifyContent: 'center',
-          }}
+          } }
         >
-          <View style={{ width: 8, height: 1.5, backgroundColor: color }} />
           <View
-            style={{
-              width: 1.5,
-              height: 8,
+            style={ {
+              width: 9,
+              height: 1.8,
+              backgroundColor: color,
+            } }
+          />
+          <View
+            style={ {
+              width: 1.8,
+              height: 9,
               backgroundColor: color,
               position: 'absolute',
-            }}
+            } }
           />
         </View>
       </View>
@@ -135,26 +186,34 @@ function TabIcon({ name, active }: { name: string; active: boolean }) {
 
   if (name === 'waves') {
     return (
-      <View style={{ flexDirection: 'row', gap: 3, alignItems: 'flex-end', height: size }}>
+      <View
+        style={ {
+          flexDirection: 'row',
+          gap: 3,
+          alignItems: 'flex-end',
+          height: size,
+        } }
+      >
         <View
-          style={{
+          style={ {
             width: 7,
-            height: 14,
-            borderRadius: 2,
+            height: 16,
+            borderRadius: 3,
             backgroundColor: active ? color : 'transparent',
             borderWidth: 1.5,
             borderColor: color,
-          }}
+          } }
         />
+
         <View
-          style={{
+          style={ {
             width: 7,
-            height: 10,
-            borderRadius: 2,
+            height: 11,
+            borderRadius: 3,
             backgroundColor: active ? color : 'transparent',
             borderWidth: 1.5,
             borderColor: color,
-          }}
+          } }
         />
       </View>
     );
@@ -162,27 +221,28 @@ function TabIcon({ name, active }: { name: string; active: boolean }) {
 
   if (name === 'me') {
     return (
-      <View style={box}>
+      <View style={ box }>
         <View
-          style={{
-            width: 8,
-            height: 8,
-            borderRadius: 4,
-            borderWidth: 1.5,
+          style={ {
+            width: 9,
+            height: 9,
+            borderRadius: 4.5,
+            borderWidth: 1.7,
             borderColor: color,
             marginBottom: 2,
-          }}
+          } }
         />
+
         <View
-          style={{
-            width: 14,
-            height: 7,
-            borderTopLeftRadius: 7,
-            borderTopRightRadius: 7,
-            borderWidth: 1.5,
+          style={ {
+            width: 15,
+            height: 8,
+            borderTopLeftRadius: 8,
+            borderTopRightRadius: 8,
+            borderWidth: 1.7,
             borderBottomWidth: 0,
             borderColor: color,
-          }}
+          } }
         />
       </View>
     );

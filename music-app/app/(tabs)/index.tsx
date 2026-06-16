@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
+import { NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
 import {
   ScrollView,
   Text,
@@ -96,6 +97,23 @@ const FEATURED: Record<string, { title: string; sub: string; color: string; bg: 
 };
 
 export default function HomeScreen() {
+  const lastOffset = useRef(0);
+  const [hideMini, setHideMini] = useState(false);
+
+  const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const currentOffset = event.nativeEvent.contentOffset.y;
+
+    const direction = currentOffset - lastOffset.current;
+
+    if (direction > 10) {
+      setHideMini(true); // scrolling down → hide
+    } else if (direction < -10) {
+      setHideMini(false); // scrolling up → show
+    }
+
+    lastOffset.current = currentOffset;
+  };
+  const [miniPlayerHeight, setMiniPlayerHeight] = useState(0);
   const [activeMood, setActiveMood] = useState('Focus');
   const { song: currentSong, isPlaying, setQueue, recentlyPlayed } = usePlayer();
   const router = useRouter();
@@ -121,9 +139,13 @@ export default function HomeScreen() {
       <SafeAreaView style={ { backgroundColor: C.bg } } />
 
       <ScrollView
-        style={ { flex: 1 } }
-        contentContainerStyle={ { paddingBottom: 16 } }
-        showsVerticalScrollIndicator={ false }
+        onScroll={ onScroll }
+        scrollEventThrottle={ 16 }
+        contentContainerStyle={ {
+          paddingBottom: currentSong?.id
+            ? miniPlayerHeight + 140
+            : 24,
+        } }
       >
 
         {/* ── Top bar ── */ }
@@ -584,7 +606,7 @@ export default function HomeScreen() {
 
       </ScrollView>
 
-      <MiniPlayer />
+      <MiniPlayer hidden={ hideMini } />
     </View>
   );
 }

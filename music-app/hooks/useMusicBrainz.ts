@@ -72,6 +72,67 @@ export function useMusicBrainz() {
     });
   }, []);
 
+  // ── Smart re-ranking after MusicBrainz returns results ──
+  function rerankSongs(songs: SongWithArt[], query: string): SongWithArt[] {
+    const q = query.toLowerCase().trim();
+    const words = q.split(' ').filter(Boolean);
+
+    const scored = songs.map((song) => {
+      const title = song.title.toLowerCase();
+      const artist = song.artist.toLowerCase();
+      const combined = `${title} ${artist}`;
+      let score = 0;
+
+      // Exact title match — highest priority
+      if (title === q) score += 100;
+
+      // Title starts with query
+      if (title.startsWith(q)) score += 60;
+
+      // Title contains full query
+      if (title.includes(q)) score += 40;
+
+      // Artist contains full query
+      if (artist.includes(q)) score += 30;
+
+      // All query words found in title
+      const allWordsInTitle = words.every((w) => title.includes(w));
+      if (allWordsInTitle) score += 35;
+
+      // All query words found in combined title+artist
+      const allWordsInCombined = words.every((w) => combined.includes(w));
+      if (allWordsInCombined) score += 20;
+
+      // Word-by-word partial match
+      words.forEach((w) => {
+        if (title.includes(w)) score += 8;
+        if (artist.includes(w)) score += 4;
+      });
+
+      // Bonus for songs that have an album (more established recordings)
+      if (song.album) score += 5;
+
+      // Bonus for songs with a year (more complete metadata = more known)
+      if (song.year) score += 3;
+
+      // Bonus for songs with genre tags (well-catalogued = popular)
+      score += Math.min((song.genres || []).length * 2, 10);
+
+      // Bonus if duration looks like a real song (2–6 minutes)
+      if (song.duration && song.duration !== '0:00') {
+        const parts = song.duration.split(':');
+        const mins = parseInt(parts[0], 10);
+        if (mins >= 2 && mins <= 6) score += 4;
+      }
+
+      return { song, score };
+    });
+
+    // Sort by score descending
+    scored.sort((a, b) => b.score - a.score);
+    return scored.map((s) => s.song);
+  }
+
   // ── Initial search ──
   const search = useCallback(async (q: string) => {
     if (!q.trim()) {
@@ -94,13 +155,17 @@ export function useMusicBrainz() {
       if (currentQueryRef.current !== q) return;
 
       const mapped = mapSongs(songs);
-      setResults(mapped);
+
+      // ← Re-rank before setting results
+      const reranked = rerankSongs(mapped, q);
+
+      setResults(reranked);
       setTotal(t);
       setHasMore(t > PAGE_SIZE);
       setOffset(PAGE_SIZE);
       setLoading(false);
 
-      fetchCoverArt(mapped, 0);
+      fetchCoverArt(reranked, 0);
     } catch {
       if (currentQueryRef.current !== q) return;
       setError('Search failed. Try again.');
@@ -117,15 +182,18 @@ export function useMusicBrainz() {
     try {
       const { songs, total: t } = await searchSongs(query, PAGE_SIZE, offset);
       const mapped = mapSongs(songs);
+
+      // ← Re-rank the new page too
+      const reranked = rerankSongs(mapped, query);
       const startIndex = results.length;
 
-      setResults((prev) => [...prev, ...mapped]);
+      setResults((prev) => [...prev, ...reranked]);
       setTotal(t);
       setHasMore(offset + PAGE_SIZE < t);
       setOffset((prev) => prev + PAGE_SIZE);
       setLoadingMore(false);
 
-      fetchCoverArt(mapped, startIndex);
+      fetchCoverArt(reranked, startIndex);
     } catch {
       setLoadingMore(false);
     }

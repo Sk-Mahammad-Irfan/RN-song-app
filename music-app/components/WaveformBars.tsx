@@ -23,11 +23,24 @@ export default function WaveformBars({
   }[size];
 
   const anims = useRef(
-    Array.from({ length: count }, (_, i) => new Animated.Value(0.25 + (i % 3) * 0.2))
+    Array.from({ length: count }, (_, i) =>
+      new Animated.Value(0.25 + (i % 3) * 0.2)
+    )
   ).current;
+
+  // Glow opacity — pulses when playing
+  const glowAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (!isPlaying) {
+      // Stop glow
+      Animated.timing(glowAnim, {
+        toValue: 0,
+        duration: 400,
+        useNativeDriver: false,
+      }).start();
+
+      // Reset bars to static positions
       anims.forEach((a, i) => {
         Animated.timing(a, {
           toValue: 0.25 + (i % 3) * 0.2,
@@ -38,6 +51,23 @@ export default function WaveformBars({
       return;
     }
 
+    // Start glow pulse
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(glowAnim, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: false,
+        }),
+        Animated.timing(glowAnim, {
+          toValue: 0.4,
+          duration: 800,
+          useNativeDriver: false,
+        }),
+      ])
+    ).start();
+
+    // Animate bars
     const loops = anims.map((a) => {
       const loop = Animated.loop(
         Animated.sequence([
@@ -57,12 +87,26 @@ export default function WaveformBars({
       return loop;
     });
 
-    return () => loops.forEach((l) => l.stop());
+    return () => {
+      loops.forEach((l) => l.stop());
+      glowAnim.stopAnimation();
+    };
   }, [isPlaying]);
+
+  // Interpolate glow opacity
+  const glowOpacity = glowAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 0.85],
+  });
+
+  const glowRadius = glowAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, size === 'lg' ? 14 : size === 'md' ? 8 : 5],
+  });
 
   return (
     <View
-      style={{
+      style={ {
         width: d.box,
         height: d.box,
         backgroundColor: bg,
@@ -73,12 +117,12 @@ export default function WaveformBars({
         paddingHorizontal: size === 'lg' ? 12 : 6,
         paddingVertical: size === 'lg' ? 12 : 6,
         gap: d.gap,
-      }}
+      } }
     >
-      {anims.map((a, i) => (
+      { anims.map((a, i) => (
         <Animated.View
-          key={i}
-          style={{
+          key={ i }
+          style={ {
             width: d.bar,
             borderRadius: d.bar / 2,
             backgroundColor: color,
@@ -86,9 +130,18 @@ export default function WaveformBars({
               inputRange: [0, 1],
               outputRange: ['10%', '100%'],
             }),
-          }}
+
+            // ── Glow on each bar ──
+            shadowColor: color,
+            shadowOffset: { width: 0, height: 0 },
+            shadowOpacity: isPlaying ? glowOpacity : 0,
+            shadowRadius: isPlaying ? glowRadius : 0,
+
+            // Android glow per bar
+            elevation: isPlaying ? (size === 'lg' ? 8 : 4) : 0,
+          } }
         />
-      ))}
+      )) }
     </View>
   );
 }
