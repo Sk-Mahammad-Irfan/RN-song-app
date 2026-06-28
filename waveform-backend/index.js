@@ -3,8 +3,9 @@ const cors = require("cors");
 const { execFile } = require("child_process");
 const path = require("path");
 const Database = require("better-sqlite3");
+const fs = require("fs");
 
-const YTDLP = path.join(__dirname, "yt-dlp.exe");
+const YTDLP = path.join(__dirname, "yt-dlp");
 
 // ── Database setup ──
 const db = new Database(path.join(__dirname, "waveform.db"));
@@ -201,6 +202,9 @@ app.patch("/requests/:id/status", (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+console.log("yt-dlp exists:", fs.existsSync(YTDLP));
+console.log("Path:", YTDLP);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
