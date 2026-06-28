@@ -4,7 +4,8 @@ const { execFile } = require("child_process");
 const path = require("path");
 const Database = require("better-sqlite3");
 
-const YTDLP = path.join(__dirname, "yt-dlp.exe");
+const YTDLP =
+  process.platform === "win32" ? path.join(__dirname, "yt-dlp.exe") : "yt-dlp";
 
 // ── Database setup ──
 const db = new Database(path.join(__dirname, "waveform.db"));
