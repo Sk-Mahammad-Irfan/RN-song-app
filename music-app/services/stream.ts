@@ -1,5 +1,4 @@
-// D:\React Native\song-app\music-app\services\stream.ts
-const BACKEND_URL = 'http://10.197.93.20:3000';
+const BACKEND_URL = 'http://10.140.152.20:3000';
 
 export async function getStreamUrl(
     title: string,

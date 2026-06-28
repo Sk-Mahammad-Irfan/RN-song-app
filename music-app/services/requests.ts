@@ -1,4 +1,4 @@
-const BACKEND_URL = 'http://10.197.93.20:3000';
+const BACKEND_URL = 'http://10.140.152.20:3000';
 
 export type SongRequest = {
     id: number;

@@ -16,6 +16,7 @@ import TabBar from '../components/TabBar';
 import WaveformBars from '../components/WaveformBars';
 import { C } from '../constants/theme';
 import { usePlayer } from '../store/playerStore';
+import { BlurView } from 'expo-blur';
 
 function formatTime(secs: number) {
   if (!secs || isNaN(secs)) return '0:00';
@@ -90,7 +91,7 @@ export default function PlayerScreen() {
         } }
       >
         <TouchableOpacity onPress={ () => router.back() }>
-          <Text style={ { color: '#9A9AAF', fontSize: 20 } }>‹</Text>
+          <Text style={ { color: '#9A9AAF', fontSize: 30 } }>‹</Text>
         </TouchableOpacity>
 
         <Text style={ { color: '#9A9AAF', fontSize: 11, letterSpacing: 1 } }>
@@ -103,15 +104,28 @@ export default function PlayerScreen() {
       </View>
 
       {/* MAIN CARD */ }
-      <View
+
+      <BlurView
+        intensity={ 25 }
+        tint="dark"
         style={ {
+          overflow: 'hidden',
           marginHorizontal: 16,
           borderRadius: 28,
-          backgroundColor: 'rgba(20,20,32,0.95)',
+          backgroundColor: '#181827',
+          shadowColor: '#000',
+          shadowOpacity: 0.35,
+          shadowRadius: 25,
+          shadowOffset: {
+            width: 0,
+            height: 15,
+          },
+
+          elevation: 20,
           borderWidth: 1,
           borderColor: 'rgba(255,255,255,0.06)',
-          paddingVertical: 34,
-          paddingHorizontal: 20,
+          paddingVertical: 40,
+          paddingHorizontal: 28,
           alignItems: 'center',
         } }
       >
@@ -126,7 +140,7 @@ export default function PlayerScreen() {
           <WaveformBars
             color={ song.color }
             bg="transparent"
-            count={ 10 }
+            count={ 18 }
             isPlaying={ isPlaying }
             size="lg"
           />
@@ -138,9 +152,10 @@ export default function PlayerScreen() {
             numberOfLines={ 1 }
             style={ {
               color: '#fff',
-              fontSize: 22,
-              fontWeight: '600',
+              fontSize: 30,
+              fontWeight: '700',
               textAlign: 'center',
+              letterSpacing: -0.5,
             } }
           >
             { song.title }
@@ -149,10 +164,10 @@ export default function PlayerScreen() {
           <Text
             numberOfLines={ 1 }
             style={ {
-              color: '#8A8AA3',
-              fontSize: 13,
+              color: '#A8A8B8',
+              fontSize: 15,
               textAlign: 'center',
-              marginTop: 6,
+              marginTop: 8,
             } }
           >
             { song.artist }
@@ -163,24 +178,26 @@ export default function PlayerScreen() {
         <TouchableOpacity
           onPress={ () => toggleLike(song) }
           style={ {
-            marginTop: 16,
-            paddingHorizontal: 14,
-            paddingVertical: 8,
-            borderRadius: 20,
-            borderWidth: 1,
-            borderColor: liked
-              ? 'rgba(139,128,240,0.4)'
-              : 'rgba(255,255,255,0.06)',
+            marginTop: 22,
+
+            width: 52,
+            height: 52,
+
+            borderRadius: 26,
+
+            alignItems: 'center',
+            justifyContent: 'center',
+
             backgroundColor: liked
-              ? 'rgba(139,128,240,0.15)'
-              : 'transparent',
+              ? '#7E5BFF'
+              : '#222232'
           } }
         >
-          <Text style={ { color: liked ? C.purple : '#777', fontSize: 16 } }>
+          <Text style={ { color: liked ? C.purple : '#777', fontSize: 22 } }>
             { liked ? '♥' : '♡' }
           </Text>
         </TouchableOpacity>
-      </View>
+      </BlurView>
 
       {/* PROGRESS BAR */ }
       <View
@@ -252,22 +269,39 @@ export default function PlayerScreen() {
       <View
         style={ {
           flexDirection: 'row',
-          justifyContent: 'space-between',
+          justifyContent: 'space-evenly',
           alignItems: 'center',
           paddingHorizontal: 26,
           marginTop: 28,
         } }
       >
         <TouchableOpacity><ShuffleIcon /></TouchableOpacity>
-        <TouchableOpacity onPress={ prev }><PrevIcon /></TouchableOpacity>
+        <TouchableOpacity onPress={ prev }
+          style={ {
+            width: 52,
+            height: 52,
+            borderRadius: 26,
+            backgroundColor: '#1F1F2C',
+            alignItems: 'center',
+            justifyContent: 'center',
+          } }>
+          <PrevIcon />
+        </TouchableOpacity>
 
         <TouchableOpacity
           onPress={ togglePlay }
           style={ {
-            width: 72,
-            height: 72,
-            borderRadius: 36,
-            backgroundColor: C.purple,
+            width: 82,
+            height: 82,
+            borderRadius: 41,
+            backgroundColor: '#8B80F0',
+            shadowColor: '#8B80F0',
+            shadowOpacity: .45,
+            shadowRadius: 25,
+            shadowOffset: {
+              width: 0,
+              height: 8
+            },
             alignItems: 'center',
             justifyContent: 'center',
           } }
@@ -282,7 +316,17 @@ export default function PlayerScreen() {
           ) }
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={ next }><NextIcon /></TouchableOpacity>
+        <TouchableOpacity onPress={ next }
+          style={ {
+            width: 52,
+            height: 52,
+            borderRadius: 26,
+            backgroundColor: '#1F1F2C',
+            alignItems: 'center',
+            justifyContent: 'center',
+          } }
+        ><NextIcon />
+        </TouchableOpacity>
         <View style={ { width: 30 } } />
       </View>
 
@@ -292,8 +336,8 @@ export default function PlayerScreen() {
           marginHorizontal: 16,
           marginTop: 24,
           flex: 1,
-          borderRadius: 20,
-          backgroundColor: '#141420',
+          borderRadius: 28,
+          backgroundColor: '#181827',
           borderWidth: 1,
           borderColor: 'rgba(255,255,255,0.06)',
           overflow: 'hidden',
@@ -304,7 +348,10 @@ export default function PlayerScreen() {
             color: '#8A8AA3',
             fontSize: 10,
             letterSpacing: 1.2,
-            padding: 14,
+            paddingVertical: 18,
+            paddingHorizontal: 18,
+            borderBottomWidth: 1,
+            borderBottomColor: 'rgba(255,255,255,.05)'
           } }
         >
           UP NEXT
@@ -315,9 +362,13 @@ export default function PlayerScreen() {
             onPress={ () => playSong(nextSong) }
             style={ {
               flexDirection: 'row',
-              alignItems: 'center',
-              padding: 14,
+              paddingVertical: 18,
+              paddingHorizontal: 18,
               gap: 12,
+              borderRadius: 27,
+              backgroundColor: nextSong.bg,
+              alignItems: 'center',
+              justifyContent: 'center',
             } }
           >
             <WaveformBars
@@ -341,9 +392,9 @@ export default function PlayerScreen() {
       </View>
 
       {/* bottom spacing for tab bar */ }
-      <View style={ { height: insets.bottom + 80 } } />
+      <View style={ { height: insets.bottom + 80, } } />
 
       <TabBar />
-    </View>
+    </View >
   );
 }

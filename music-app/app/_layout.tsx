@@ -7,16 +7,16 @@ export default function RootLayout() {
   const loadLikedSongs = usePlayer((state) => state.loadLikedSongs);
 
   useEffect(() => {
+    // Load persisted liked songs
     loadLikedSongs();
   }, []);
 
   return (
     <SafeAreaProvider>
-      <Stack screenOptions={ { headerShown: false } }>
+      <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="player" />
         <Stack.Screen name="playlist/[id]" />
-        <Stack.Screen name="requests" />
       </Stack>
     </SafeAreaProvider>
   );

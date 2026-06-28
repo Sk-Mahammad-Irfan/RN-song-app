@@ -271,7 +271,7 @@ export default function FindScreen() {
           onScroll={ onScroll }
           scrollEventThrottle={ 16 }
           data={ results }
-          keyExtractor={ (item) => item.id }
+          keyExtractor={ (item, index) => `${item.id}-${index}` }
           showsVerticalScrollIndicator={ false }
           contentContainerStyle={ { paddingBottom: BOTTOM_SPACE } }
           renderItem={ ({ item, index }) => (

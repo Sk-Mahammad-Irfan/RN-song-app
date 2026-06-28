@@ -204,5 +204,5 @@ app.patch("/requests/:id/status", (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`\nWaveform backend running at http://10.197.93.20:${PORT}\n`);
+  console.log(`\nWaveform backend running at http://10.140.152.20:${PORT}\n`);
 });
