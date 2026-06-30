@@ -204,11 +204,16 @@ export const usePlayer = create<PlayerState>((set, get) => ({
   },
 
   seekTo: async (ratio: number) => {
-    if (!globalSound) return;
     const { totalDuration } = get();
+    if (!globalSound || !totalDuration) return;
+
+    const positionMillis = ratio * totalDuration * 1000;
+
     try {
-      await globalSound.setPositionAsync(ratio * totalDuration * 1000);
-    } catch { }
+      await globalSound.setPositionAsync(positionMillis);
+    } catch (err) {
+      console.warn('Seek failed:', err);
+    }
   },
 
   next: async () => {
