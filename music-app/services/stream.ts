@@ -1,4 +1,4 @@
-const BACKEND_URL = 'http://10.140.152.20:3000';
+const BACKEND_URL = 'http://192.168.0.102:3000';
 
 export async function getStreamUrl(
     title: string,
