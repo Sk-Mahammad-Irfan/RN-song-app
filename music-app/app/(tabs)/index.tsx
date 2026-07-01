@@ -128,476 +128,477 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <SafeAreaView style={{ backgroundColor: C.bg }} edges={['top']} />
+    <SafeAreaView style={ { flex: 1, backgroundColor: C.bg } } edges={ ['top'] }>
+      <View style={ { flex: 1, backgroundColor: C.bg } }>
 
-      <ScrollView
-        onScroll={onScroll}
-        scrollEventThrottle={16}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 140 }}
-      >
-
-        {/* ── Top bar ── */}
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingHorizontal: 20,
-            marginTop: 10,
-            marginBottom: 20,
-          }}
-        >
-          <View>
-            <Text style={{ color: C.textMuted, fontSize: 12, marginBottom: 2 }}>
-              {greeting}
-            </Text>
-            <Text style={{ color: C.text, fontSize: 22, fontWeight: '700' }}>
-              What's the mood?
-            </Text>
-          </View>
-          <View
-            style={{
-              width: 38,
-              height: 38,
-              borderRadius: 19,
-              backgroundColor: C.purple,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>SI</Text>
-          </View>
-        </View>
-
-        {/* ── Mood Pills ── */}
         <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={{ marginBottom: 24 }}
-          contentContainerStyle={{ paddingHorizontal: 20, gap: 10 }}
+          onScroll={ onScroll }
+          scrollEventThrottle={ 16 }
+          showsVerticalScrollIndicator={ false }
+          contentContainerStyle={ { paddingBottom: 140 } }
         >
-          {MOODS.map((mood) => (
-            <MoodPill
-              key={mood}
-              label={mood}
-              active={activeMood === mood}
-              onPress={() => setActiveMood(mood)}
-            />
-          ))}
-        </ScrollView>
 
-        {/* ── Featured Banner ── */}
-        <TouchableOpacity
-          activeOpacity={0.88}
-          onPress={() => handleSongPress(moodSongs[0], moodSongs)}
-          style={{
-            marginHorizontal: 20,
-            backgroundColor: featured.bg,
-            borderRadius: 20,
-            borderWidth: 1,
-            borderColor: C.border,
-            padding: 20,
-            marginBottom: 28,
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 16,
-            overflow: 'hidden',
-          }}
-        >
-          <View style={{ flex: 1 }}>
-            <Text
-              style={{
-                fontSize: 9,
-                letterSpacing: 1.2,
-                color: featured.color,
-                fontWeight: '700',
-                marginBottom: 6,
-                opacity: 0.85,
-              }}
-            >
-              {activeMood.toUpperCase()} MIX
-            </Text>
-            <Text
-              style={{
-                fontSize: 20,
-                fontWeight: '700',
-                color: C.text,
-                marginBottom: 4,
-                lineHeight: 24,
-              }}
-            >
-              {featured.title}
-            </Text>
-            <Text style={{ fontSize: 11, color: C.textMuted, marginBottom: 14 }}>
-              {featured.sub}
-            </Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <TouchableOpacity
-                onPress={() => handleSongPress(moodSongs[0], moodSongs)}
-                style={{
-                  backgroundColor: featured.color,
-                  borderRadius: 20,
-                  paddingHorizontal: 16,
-                  paddingVertical: 8,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 6,
-                }}
-              >
-                <View
-                  style={{
-                    width: 0,
-                    height: 0,
-                    borderTopWidth: 5,
-                    borderBottomWidth: 5,
-                    borderLeftWidth: 8,
-                    borderTopColor: 'transparent',
-                    borderBottomColor: 'transparent',
-                    borderLeftColor: '#fff',
-                    marginLeft: 1,
-                  }}
-                />
-                <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>Play</Text>
-              </TouchableOpacity>
-              <Text style={{ color: C.textMuted, fontSize: 11 }}>
-                {moodSongs.length} songs
+          {/* ── Top bar ── */ }
+          <View
+            style={ {
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingHorizontal: 20,
+              marginTop: 10,
+              marginBottom: 20,
+            } }
+          >
+            <View>
+              <Text style={ { color: C.textMuted, fontSize: 12, marginBottom: 2 } }>
+                { greeting }
+              </Text>
+              <Text style={ { color: C.text, fontSize: 22, fontWeight: '700' } }>
+                What's the mood?
               </Text>
             </View>
+            <View
+              style={ {
+                width: 38,
+                height: 38,
+                borderRadius: 19,
+                backgroundColor: C.purple,
+                alignItems: 'center',
+                justifyContent: 'center',
+              } }
+            >
+              <Text style={ { color: '#fff', fontSize: 14, fontWeight: '600' } }>SI</Text>
+            </View>
           </View>
-          <View style={{ alignItems: 'flex-end' }}>
-            <WaveformBars
-              color={featured.color}
-              bg="transparent"
-              count={5}
-              isPlaying={isPlaying && moodSongs.some((s) => s.id === currentSong.id)}
-              size="lg"
-            />
-          </View>
-        </TouchableOpacity>
 
-        {/* ── Recently Played ── */}
-        <View style={{ marginBottom: 28 }}>
-          <View
-            style={{
+          {/* ── Mood Pills ── */ }
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={ false }
+            style={ { marginBottom: 24 } }
+            contentContainerStyle={ { paddingHorizontal: 20, gap: 10 } }
+          >
+            { MOODS.map((mood) => (
+              <MoodPill
+                key={ mood }
+                label={ mood }
+                active={ activeMood === mood }
+                onPress={ () => setActiveMood(mood) }
+              />
+            )) }
+          </ScrollView>
+
+          {/* ── Featured Banner ── */ }
+          <TouchableOpacity
+            activeOpacity={ 0.88 }
+            onPress={ () => handleSongPress(moodSongs[0], moodSongs) }
+            style={ {
+              marginHorizontal: 20,
+              backgroundColor: featured.bg,
+              borderRadius: 20,
+              borderWidth: 1,
+              borderColor: C.border,
+              padding: 20,
+              marginBottom: 28,
               flexDirection: 'row',
               alignItems: 'center',
-              justifyContent: 'space-between',
-              paddingHorizontal: 20,
-              marginBottom: 14,
-            }}
+              gap: 16,
+              overflow: 'hidden',
+            } }
           >
-            <Text style={{ color: C.textMuted, fontSize: 10, letterSpacing: 1.5, fontWeight: '700' }}>
-              RECENTLY PLAYED
-            </Text>
-            {recentlyPlayed.length > 0 && (
-              <Text style={{ color: C.textDim, fontSize: 10 }}>
-                {recentlyPlayed.length} songs
+            <View style={ { flex: 1 } }>
+              <Text
+                style={ {
+                  fontSize: 9,
+                  letterSpacing: 1.2,
+                  color: featured.color,
+                  fontWeight: '700',
+                  marginBottom: 6,
+                  opacity: 0.85,
+                } }
+              >
+                { activeMood.toUpperCase() } MIX
               </Text>
-            )}
-          </View>
-
-          <View
-            style={{
-              paddingHorizontal: 20,
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-              gap: 10,
-            }}
-          >
-            {recentList.map((song) => {
-              const isActive = currentSong.id === song.id;
-              return (
+              <Text
+                style={ {
+                  fontSize: 20,
+                  fontWeight: '700',
+                  color: C.text,
+                  marginBottom: 4,
+                  lineHeight: 24,
+                } }
+              >
+                { featured.title }
+              </Text>
+              <Text style={ { fontSize: 11, color: C.textMuted, marginBottom: 14 } }>
+                { featured.sub }
+              </Text>
+              <View style={ { flexDirection: 'row', alignItems: 'center', gap: 10 } }>
                 <TouchableOpacity
-                  key={song.id}
-                  onPress={() => handleSongPress(song, recentList)}
-                  activeOpacity={0.8}
-                  style={{
-                    width: '47.5%',
-                    backgroundColor: C.card,
-                    borderRadius: 12,
-                    borderWidth: 1,
-                    borderColor: isActive ? C.purple : C.border,
-                    padding: 10,
+                  onPress={ () => handleSongPress(moodSongs[0], moodSongs) }
+                  style={ {
+                    backgroundColor: featured.color,
+                    borderRadius: 20,
+                    paddingHorizontal: 16,
+                    paddingVertical: 8,
                     flexDirection: 'row',
                     alignItems: 'center',
-                    gap: 8,
-                  }}
+                    gap: 6,
+                  } }
                 >
-                  <WaveformBars
-                    color={song.color}
-                    bg={song.bg}
-                    count={3}
-                    isPlaying={isActive && isPlaying}
-                    size="sm"
+                  <View
+                    style={ {
+                      width: 0,
+                      height: 0,
+                      borderTopWidth: 5,
+                      borderBottomWidth: 5,
+                      borderLeftWidth: 8,
+                      borderTopColor: 'transparent',
+                      borderBottomColor: 'transparent',
+                      borderLeftColor: '#fff',
+                      marginLeft: 1,
+                    } }
                   />
-                  <View style={{ flex: 1 }}>
-                    <Text
-                      numberOfLines={1}
-                      style={{
-                        fontSize: 11,
-                        fontWeight: '600',
-                        color: isActive ? C.purpleLight : C.text,
-                        marginBottom: 2,
-                      }}
-                    >
-                      {song.title}
-                    </Text>
-                    <Text numberOfLines={1} style={{ fontSize: 9, color: C.textMuted }}>
-                      {song.artist}
-                    </Text>
-                  </View>
-                  {isActive && isPlaying && (
-                    <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: C.purple }} />
-                  )}
+                  <Text style={ { color: '#fff', fontSize: 12, fontWeight: '700' } }>Play</Text>
                 </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
+                <Text style={ { color: C.textMuted, fontSize: 11 } }>
+                  { moodSongs.length } songs
+                </Text>
+              </View>
+            </View>
+            <View style={ { alignItems: 'flex-end' } }>
+              <WaveformBars
+                color={ featured.color }
+                bg="transparent"
+                count={ 5 }
+                isPlaying={ isPlaying && moodSongs.some((s) => s.id === currentSong.id) }
+                size="lg"
+              />
+            </View>
+          </TouchableOpacity>
 
-        {/* ── Mood Picks — horizontal scroll ── */}
-        <View style={{ marginBottom: 28 }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              paddingHorizontal: 20,
-              marginBottom: 14,
-            }}
-          >
-            <Text style={{ color: C.textMuted, fontSize: 10, letterSpacing: 1.5, fontWeight: '700' }}>
-              {activeMood.toUpperCase()} PICKS
-            </Text>
-            <Text style={{ color: C.textDim, fontSize: 10 }}>
-              {moodSongs.length} songs
-            </Text>
-          </View>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
-          >
-            {moodSongs.map((song) => {
-              const isActive = currentSong.id === song.id;
-              return (
-                <TouchableOpacity
-                  key={song.id}
-                  onPress={() => handleSongPress(song, moodSongs)}
-                  activeOpacity={0.8}
-                  style={{
-                    width: 130,
-                    backgroundColor: song.bg,
-                    borderRadius: 16,
-                    borderWidth: 1,
-                    borderColor: isActive ? song.color : C.border,
-                    padding: 14,
-                    gap: 10,
-                  }}
-                >
-                  <WaveformBars
-                    color={song.color}
-                    bg="transparent"
-                    count={4}
-                    isPlaying={isActive && isPlaying}
-                    size="md"
-                  />
-                  <Text numberOfLines={1} style={{ fontSize: 12, fontWeight: '600', color: C.text }}>
-                    {song.title}
-                  </Text>
-                  <Text numberOfLines={1} style={{ fontSize: 10, color: C.textMuted }}>
-                    {song.artist}
-                  </Text>
-                  <Text style={{ fontSize: 10, color: C.textDim }}>{song.duration}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        </View>
-
-        {/* ── Your Playlists ── */}
-        <View style={{ marginBottom: 28 }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              paddingHorizontal: 20,
-              marginBottom: 14,
-            }}
-          >
-            <Text style={{ color: C.textMuted, fontSize: 10, letterSpacing: 1.5, fontWeight: '700' }}>
-              YOUR PLAYLISTS
-            </Text>
-            <TouchableOpacity onPress={() => router.push('/waves')}>
-              <Text style={{ color: C.purpleLight, fontSize: 10, fontWeight: '600' }}>
-                see all
+          {/* ── Recently Played ── */ }
+          <View style={ { marginBottom: 28 } }>
+            <View
+              style={ {
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingHorizontal: 20,
+                marginBottom: 14,
+              } }
+            >
+              <Text style={ { color: C.textMuted, fontSize: 10, letterSpacing: 1.5, fontWeight: '700' } }>
+                RECENTLY PLAYED
               </Text>
-            </TouchableOpacity>
+              { recentlyPlayed.length > 0 && (
+                <Text style={ { color: C.textDim, fontSize: 10 } }>
+                  { recentlyPlayed.length } songs
+                </Text>
+              ) }
+            </View>
+
+            <View
+              style={ {
+                paddingHorizontal: 20,
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                gap: 10,
+              } }
+            >
+              { recentList.map((song) => {
+                const isActive = currentSong.id === song.id;
+                return (
+                  <TouchableOpacity
+                    key={ song.id }
+                    onPress={ () => handleSongPress(song, recentList) }
+                    activeOpacity={ 0.8 }
+                    style={ {
+                      width: '47.5%',
+                      backgroundColor: C.card,
+                      borderRadius: 12,
+                      borderWidth: 1,
+                      borderColor: isActive ? C.purple : C.border,
+                      padding: 10,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 8,
+                    } }
+                  >
+                    <WaveformBars
+                      color={ song.color }
+                      bg={ song.bg }
+                      count={ 3 }
+                      isPlaying={ isActive && isPlaying }
+                      size="sm"
+                    />
+                    <View style={ { flex: 1 } }>
+                      <Text
+                        numberOfLines={ 1 }
+                        style={ {
+                          fontSize: 11,
+                          fontWeight: '600',
+                          color: isActive ? C.purpleLight : C.text,
+                          marginBottom: 2,
+                        } }
+                      >
+                        { song.title }
+                      </Text>
+                      <Text numberOfLines={ 1 } style={ { fontSize: 9, color: C.textMuted } }>
+                        { song.artist }
+                      </Text>
+                    </View>
+                    { isActive && isPlaying && (
+                      <View style={ { width: 6, height: 6, borderRadius: 3, backgroundColor: C.purple } } />
+                    ) }
+                  </TouchableOpacity>
+                );
+              }) }
+            </View>
           </View>
 
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
-          >
-            {HOME_PLAYLISTS.map((playlist) => (
+          {/* ── Mood Picks — horizontal scroll ── */ }
+          <View style={ { marginBottom: 28 } }>
+            <View
+              style={ {
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingHorizontal: 20,
+                marginBottom: 14,
+              } }
+            >
+              <Text style={ { color: C.textMuted, fontSize: 10, letterSpacing: 1.5, fontWeight: '700' } }>
+                { activeMood.toUpperCase() } PICKS
+              </Text>
+              <Text style={ { color: C.textDim, fontSize: 10 } }>
+                { moodSongs.length } songs
+              </Text>
+            </View>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={ false }
+              contentContainerStyle={ { paddingHorizontal: 20, gap: 12 } }
+            >
+              { moodSongs.map((song) => {
+                const isActive = currentSong.id === song.id;
+                return (
+                  <TouchableOpacity
+                    key={ song.id }
+                    onPress={ () => handleSongPress(song, moodSongs) }
+                    activeOpacity={ 0.8 }
+                    style={ {
+                      width: 130,
+                      backgroundColor: song.bg,
+                      borderRadius: 16,
+                      borderWidth: 1,
+                      borderColor: isActive ? song.color : C.border,
+                      padding: 14,
+                      gap: 10,
+                    } }
+                  >
+                    <WaveformBars
+                      color={ song.color }
+                      bg="transparent"
+                      count={ 4 }
+                      isPlaying={ isActive && isPlaying }
+                      size="md"
+                    />
+                    <Text numberOfLines={ 1 } style={ { fontSize: 12, fontWeight: '600', color: C.text } }>
+                      { song.title }
+                    </Text>
+                    <Text numberOfLines={ 1 } style={ { fontSize: 10, color: C.textMuted } }>
+                      { song.artist }
+                    </Text>
+                    <Text style={ { fontSize: 10, color: C.textDim } }>{ song.duration }</Text>
+                  </TouchableOpacity>
+                );
+              }) }
+            </ScrollView>
+          </View>
+
+          {/* ── Your Playlists ── */ }
+          <View style={ { marginBottom: 28 } }>
+            <View
+              style={ {
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingHorizontal: 20,
+                marginBottom: 14,
+              } }
+            >
+              <Text style={ { color: C.textMuted, fontSize: 10, letterSpacing: 1.5, fontWeight: '700' } }>
+                YOUR PLAYLISTS
+              </Text>
+              <TouchableOpacity onPress={ () => router.push('/waves') }>
+                <Text style={ { color: C.purpleLight, fontSize: 10, fontWeight: '600' } }>
+                  see all
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={ false }
+              contentContainerStyle={ { paddingHorizontal: 20, gap: 12 } }
+            >
+              { HOME_PLAYLISTS.map((playlist) => (
+                <TouchableOpacity
+                  key={ playlist.id }
+                  onPress={ () => handleSongPress(playlist.songs[0], playlist.songs) }
+                  activeOpacity={ 0.8 }
+                  style={ { width: 110, gap: 8, alignItems: 'center' } }
+                >
+                  <View
+                    style={ {
+                      width: 110,
+                      height: 110,
+                      backgroundColor: playlist.bg,
+                      borderRadius: 16,
+                      borderWidth: 1,
+                      borderColor: C.border,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    } }
+                  >
+                    <WaveformBars
+                      color={ playlist.color }
+                      bg="transparent"
+                      count={ 5 }
+                      isPlaying={ false }
+                      size="md"
+                    />
+                  </View>
+                  <Text
+                    numberOfLines={ 1 }
+                    style={ { fontSize: 11, fontWeight: '600', color: C.text, textAlign: 'center' } }
+                  >
+                    { playlist.name }
+                  </Text>
+                  <Text style={ { fontSize: 9, color: C.textMuted } }>
+                    { playlist.count } songs
+                  </Text>
+                </TouchableOpacity>
+              )) }
+
+              {/* New playlist card */ }
               <TouchableOpacity
-                key={playlist.id}
-                onPress={() => handleSongPress(playlist.songs[0], playlist.songs)}
-                activeOpacity={0.8}
-                style={{ width: 110, gap: 8, alignItems: 'center' }}
+                onPress={ () => router.push('/waves') }
+                activeOpacity={ 0.8 }
+                style={ { width: 110, gap: 8, alignItems: 'center' } }
               >
                 <View
-                  style={{
+                  style={ {
                     width: 110,
                     height: 110,
-                    backgroundColor: playlist.bg,
+                    backgroundColor: C.card,
                     borderRadius: 16,
                     borderWidth: 1,
                     borderColor: C.border,
+                    borderStyle: 'dashed',
                     alignItems: 'center',
                     justifyContent: 'center',
-                  }}
+                    gap: 6,
+                  } }
                 >
-                  <WaveformBars
-                    color={playlist.color}
-                    bg="transparent"
-                    count={5}
-                    isPlaying={false}
-                    size="md"
-                  />
+                  <Text style={ { color: C.textMuted, fontSize: 24, lineHeight: 28 } }>+</Text>
+                  <Text style={ { color: C.textMuted, fontSize: 9, textAlign: 'center' } }>
+                    New playlist
+                  </Text>
                 </View>
-                <Text
-                  numberOfLines={1}
-                  style={{ fontSize: 11, fontWeight: '600', color: C.text, textAlign: 'center' }}
-                >
-                  {playlist.name}
-                </Text>
-                <Text style={{ fontSize: 9, color: C.textMuted }}>
-                  {playlist.count} songs
-                </Text>
               </TouchableOpacity>
-            ))}
+            </ScrollView>
+          </View>
 
-            {/* New playlist card */}
-            <TouchableOpacity
-              onPress={() => router.push('/waves')}
-              activeOpacity={0.8}
-              style={{ width: 110, gap: 8, alignItems: 'center' }}
+          {/* ── Jump Back In ── */ }
+          <View>
+            <Text
+              style={ {
+                color: C.textMuted,
+                fontSize: 10,
+                letterSpacing: 1.5,
+                fontWeight: '700',
+                paddingHorizontal: 20,
+                marginBottom: 14,
+              } }
             >
-              <View
-                style={{
-                  width: 110,
-                  height: 110,
-                  backgroundColor: C.card,
-                  borderRadius: 16,
-                  borderWidth: 1,
-                  borderColor: C.border,
-                  borderStyle: 'dashed',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                }}
-              >
-                <Text style={{ color: C.textMuted, fontSize: 24, lineHeight: 28 }}>+</Text>
-                <Text style={{ color: C.textMuted, fontSize: 9, textAlign: 'center' }}>
-                  New playlist
-                </Text>
-              </View>
-            </TouchableOpacity>
-          </ScrollView>
-        </View>
+              JUMP BACK IN
+            </Text>
 
-        {/* ── Jump Back In ── */}
-        <View>
-          <Text
-            style={{
-              color: C.textMuted,
-              fontSize: 10,
-              letterSpacing: 1.5,
-              fontWeight: '700',
-              paddingHorizontal: 20,
-              marginBottom: 14,
-            }}
-          >
-            JUMP BACK IN
-          </Text>
+            { JUMP_BACK.map((song, index) => {
+              const isActive = currentSong.id === song.id;
+              return (
+                <TouchableOpacity
+                  key={ song.id }
+                  onPress={ () => handleSongPress(song, JUMP_BACK) }
+                  activeOpacity={ 0.75 }
+                  style={ {
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    paddingHorizontal: 20,
+                    paddingVertical: 10,
+                    gap: 12,
+                    backgroundColor: isActive ? '#16162a' : 'transparent',
+                  } }
+                >
+                  {/* Number or animated bars */ }
+                  <View style={ { width: 20, alignItems: 'center', justifyContent: 'center' } }>
+                    { isActive && isPlaying ? (
+                      <View style={ { flexDirection: 'row', gap: 1.5, alignItems: 'flex-end', height: 14 } }>
+                        { [0.6, 1, 0.7].map((h, i) => (
+                          <View
+                            key={ i }
+                            style={ {
+                              width: 3,
+                              height: 14 * h,
+                              backgroundColor: C.purple,
+                              borderRadius: 1.5,
+                            } }
+                          />
+                        )) }
+                      </View>
+                    ) : (
+                      <Text style={ { color: C.textDim, fontSize: 12 } }>{ index + 1 }</Text>
+                    ) }
+                  </View>
 
-          {JUMP_BACK.map((song, index) => {
-            const isActive = currentSong.id === song.id;
-            return (
-              <TouchableOpacity
-                key={song.id}
-                onPress={() => handleSongPress(song, JUMP_BACK)}
-                activeOpacity={0.75}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  paddingHorizontal: 20,
-                  paddingVertical: 10,
-                  gap: 12,
-                  backgroundColor: isActive ? '#16162a' : 'transparent',
-                }}
-              >
-                {/* Number or animated bars */}
-                <View style={{ width: 20, alignItems: 'center', justifyContent: 'center' }}>
-                  {isActive && isPlaying ? (
-                    <View style={{ flexDirection: 'row', gap: 1.5, alignItems: 'flex-end', height: 14 }}>
-                      {[0.6, 1, 0.7].map((h, i) => (
-                        <View
-                          key={i}
-                          style={{
-                            width: 3,
-                            height: 14 * h,
-                            backgroundColor: C.purple,
-                            borderRadius: 1.5,
-                          }}
-                        />
-                      ))}
-                    </View>
-                  ) : (
-                    <Text style={{ color: C.textDim, fontSize: 12 }}>{index + 1}</Text>
-                  )}
-                </View>
+                  <WaveformBars
+                    color={ song.color }
+                    bg={ song.bg }
+                    count={ 3 }
+                    isPlaying={ isActive && isPlaying }
+                    size="sm"
+                  />
 
-                <WaveformBars
-                  color={song.color}
-                  bg={song.bg}
-                  count={3}
-                  isPlaying={isActive && isPlaying}
-                  size="sm"
-                />
+                  <View style={ { flex: 1 } }>
+                    <Text
+                      numberOfLines={ 1 }
+                      style={ {
+                        fontSize: 13,
+                        fontWeight: '600',
+                        color: isActive ? C.purpleLight : C.text,
+                        marginBottom: 3,
+                      } }
+                    >
+                      { song.title }
+                    </Text>
+                    <Text style={ { fontSize: 11, color: C.textMuted } }>
+                      { song.artist }
+                    </Text>
+                  </View>
 
-                <View style={{ flex: 1 }}>
-                  <Text
-                    numberOfLines={1}
-                    style={{
-                      fontSize: 13,
-                      fontWeight: '600',
-                      color: isActive ? C.purpleLight : C.text,
-                      marginBottom: 3,
-                    }}
-                  >
-                    {song.title}
-                  </Text>
-                  <Text style={{ fontSize: 11, color: C.textMuted }}>
-                    {song.artist}
-                  </Text>
-                </View>
+                  <Text style={ { fontSize: 11, color: C.textDim } }>{ song.duration }</Text>
+                </TouchableOpacity>
+              );
+            }) }
+          </View>
 
-                <Text style={{ fontSize: 11, color: C.textDim }}>{song.duration}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+        </ScrollView>
 
-      </ScrollView>
-
-      <MiniPlayer hidden={hideMini} />
-    </View>
+        <MiniPlayer hidden={ hideMini } />
+      </View>
+    </SafeAreaView>
   );
 }

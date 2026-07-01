@@ -26,7 +26,7 @@ const textures = [
   { id: '4', name: 'Late night', genre: 'jazz · soul', color: '#888780', bg: '#101018' },
 ];
 
-function MBSongCard({ song, onPress }: { song: SongWithArt; onPress: () => void }) {
+function MBSongCard({ song, onPress, isActive }: { song: SongWithArt; onPress: () => void; isActive: boolean }) {
   return (
     <TouchableOpacity
       onPress={ onPress }
@@ -91,6 +91,7 @@ function MBSongCard({ song, onPress }: { song: SongWithArt; onPress: () => void 
 }
 
 export default function FindScreen() {
+  const { setQueue, song: currentSong } = usePlayer();
   const lastOffset = useRef(0);
   const [hideMini, setHideMini] = useState(false);
 
@@ -109,7 +110,7 @@ export default function FindScreen() {
   };
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { setQueue } = usePlayer();
+  // const { setQueue } = usePlayer();
 
   const {
     query,
@@ -278,6 +279,7 @@ export default function FindScreen() {
             <MBSongCard
               song={ item }
               onPress={ () => handleSongPress(item, index) }
+              isActive={ currentSong?.id === item.id }
             />
           ) }
           ListHeaderComponent={

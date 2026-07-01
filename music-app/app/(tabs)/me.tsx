@@ -137,8 +137,6 @@ export default function MeScreen() {
 
     if (result?.alreadyRequested) {
       setSearchState('requested');
-    } else {
-      setSearchState('requested');
     }
   };
 

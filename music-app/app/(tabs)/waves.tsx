@@ -145,7 +145,7 @@ export default function WavesScreen() {
                 </Text>
                 <View style={ { flexDirection: 'row', gap: 8, marginBottom: 5 } }>
                   <Text style={ { fontSize: 10, color: C.textMuted } }>
-                    { item.songs.length > 0 ? `${item.songs.length} songs` : 'Loading...' }
+                    { item.songs.length > 0 ? `${item.songs.length} songs` : 'No songs found' }
                   </Text>
                   <Text style={ { fontSize: 10, color: C.textMuted } }>{ item.duration }</Text>
                 </View>
